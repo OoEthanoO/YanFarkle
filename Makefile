@@ -2,7 +2,7 @@
 
 all: package
 
-package:
+package: clean
 	@chmod +x package_macos.sh
 	./package_macos.sh
 
