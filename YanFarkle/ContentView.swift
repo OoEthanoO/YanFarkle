@@ -461,6 +461,7 @@ struct ContentView: View {
     @State private var goalScore: UInt = 2000
     @State private var isConfiguring = false
     @State private var hasReceivedInitialState = false
+    @State private var showRules = false
     
     @State private var p1NameInput = ""
     @State private var p2NameInput = ""
@@ -512,6 +513,7 @@ struct ContentView: View {
                             .foregroundColor(Color(red: 0.1, green: 0.4, blue: 0.2))
                             .cornerRadius(25)
                             .shadow(radius: 5)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     
@@ -536,6 +538,7 @@ struct ContentView: View {
                             .foregroundColor(.white)
                             .cornerRadius(25)
                             .shadow(radius: 5)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     
@@ -559,20 +562,23 @@ struct ContentView: View {
                                 NetworkManager.shared.connect(host: hostIP)
                                 setupNetworkCallbacks()
                             }) {
-                                if NetworkManager.shared.isConnecting {
-                                    ProgressView()
-                                        .tint(.white)
-                                        .frame(width: 40)
-                                } else {
-                                    Text("Join")
-                                        .font(.title3.bold())
+                                Group {
+                                    if NetworkManager.shared.isConnecting {
+                                        ProgressView()
+                                            .tint(.white)
+                                            .frame(width: 40)
+                                    } else {
+                                        Text("Join")
+                                            .font(.title3.bold())
+                                    }
                                 }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(NetworkManager.shared.isConnecting ? Color.gray : Color.orange)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                                .contentShape(Rectangle())
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(NetworkManager.shared.isConnecting ? Color.gray : Color.orange)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
                             .buttonStyle(.plain)
                             .disabled(NetworkManager.shared.isConnecting)
                         }
@@ -590,6 +596,25 @@ struct ContentView: View {
                         }
                     }
                     .padding(.top, 10)
+                    
+                    Button(action: {
+                        showRules = true
+                    }) {
+                        Text("How to Play")
+                            .font(.headline)
+                            .padding(.horizontal, 40)
+                            .padding(.vertical, 12)
+                            .background(Color.white.opacity(0.2))
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 20)
                 }
             } else if isConfiguring {
                 VStack(spacing: 20) {
@@ -815,6 +840,9 @@ struct ContentView: View {
                 gameView
             }
         }
+        .sheet(isPresented: $showRules) {
+            RulesView()
+        }
     }
     
     var gameView: some View {
@@ -855,6 +883,19 @@ struct ContentView: View {
                         }
                     }
                 }
+                
+                Button(action: {
+                    showRules = true
+                }) {
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.white.opacity(0.8))
+                        .padding(8)
+                        .background(Color.black.opacity(0.2))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, 15)
             }
             .padding(.horizontal)
             .padding(.top, 10)
@@ -949,7 +990,7 @@ struct ContentView: View {
                             .onTapGesture {
                                 guard game.isLocalTurn && !game.isBust else { return }
                                 
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.currentDieIndex = index
                                     if game.isLocalAuthority {
                                         game.toggleDieSelection(index: index)
@@ -975,7 +1016,7 @@ struct ContentView: View {
                     .background(
                         ZStack {
                             Button("") { 
-                                withAnimation {
+                                withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.moveFocusHorizontal(offset: -1)
                                     if game.isLocalAuthority {
                                         game.syncState()
@@ -985,7 +1026,7 @@ struct ContentView: View {
                                 }
                             }.keyboardShortcut("a", modifiers: [])
                             Button("") { 
-                                withAnimation {
+                                withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.moveFocusHorizontal(offset: 1)
                                     if game.isLocalAuthority {
                                         game.syncState()
@@ -995,7 +1036,7 @@ struct ContentView: View {
                                 }
                             }.keyboardShortcut("d", modifiers: [])
                             Button("") { 
-                                withAnimation {
+                                withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.moveFocusVertical(offset: -1)
                                     if game.isLocalAuthority {
                                         game.syncState()
@@ -1005,7 +1046,7 @@ struct ContentView: View {
                                 }
                             }.keyboardShortcut("w", modifiers: [])
                             Button("") { 
-                                withAnimation {
+                                withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.moveFocusVertical(offset: 1)
                                     if game.isLocalAuthority {
                                         game.syncState()
@@ -1015,7 +1056,7 @@ struct ContentView: View {
                                 }
                             }.keyboardShortcut("s", modifiers: [])
                             Button("") { 
-                                withAnimation {
+                                withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.toggleSelectedDie()
                                     if game.isLocalAuthority {
                                         game.syncState()
@@ -1025,7 +1066,7 @@ struct ContentView: View {
                                 }
                             }.keyboardShortcut("e", modifiers: [])
                             Button("") { 
-                                withAnimation {
+                                withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.toggleSelectedDie()
                                     if game.isLocalAuthority {
                                         game.syncState()
@@ -1202,4 +1243,158 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+struct RulesView: View {
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Custom Header
+            HStack {
+                Text("Farkle Rules")
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+                    .shadow(radius: 1)
+                
+                Spacer()
+                
+                Button(action: {
+                    dismiss()
+                }) {
+                    Text("Done")
+                        .font(.headline)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.2))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+            .padding()
+            .background(Color(red: 0.05, green: 0.2, blue: 0.1))
+            .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
+            
+            ZStack {
+                LinearGradient(
+                    gradient: Gradient(colors: [Color(red: 0.1, green: 0.4, blue: 0.2), Color(red: 0.05, green: 0.2, blue: 0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 25) {
+                        // Header Content
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("How to Play Farkle")
+                                .font(.system(size: 36, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                                .shadow(radius: 2)
+                            
+                            Text("The goal is to score points by rolling dice. Be the first to reach the goal score to win!")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.9))
+                        }
+                        .padding(.top)
+                        
+                        Divider().background(Color.white.opacity(0.3))
+                        
+                        // Scoring Section
+                        VStack(alignment: .leading, spacing: 15) {
+                            SectionHeader(title: "Scoring Table", icon: "list.bullet.rectangle.fill")
+                            
+                            VStack(spacing: 8) {
+                                ScoringRow(label: "Single 1", points: "100 pts")
+                                ScoringRow(label: "Single 5", points: "50 pts")
+                                ScoringRow(label: "Three 1s", points: "1000 pts")
+                                ScoringRow(label: "Three of a Kind (2-6)", points: "100x Value")
+                                ScoringRow(label: "Four/Five/Six of a Kind", points: "Double for each extra")
+                                ScoringRow(label: "Straight (1-6)", points: "1500 pts")
+                                ScoringRow(label: "Small Straight (1-5)", points: "500 pts")
+                                ScoringRow(label: "Large Straight (2-6)", points: "750 pts")
+                            }
+                            .padding()
+                            .background(Color.black.opacity(0.3))
+                            .cornerRadius(15)
+                        }
+                        
+                        // Gameplay Section
+                        VStack(alignment: .leading, spacing: 15) {
+                            SectionHeader(title: "Gameplay Mechanics", icon: "gamecontroller.fill")
+                            
+                            VStack(alignment: .leading, spacing: 12) {
+                                BulletPoint(title: "Selecting Dice", text: "You must select at least one scoring die after each roll to continue your turn.")
+                                BulletPoint(title: "Score & Roll (F)", text: "Lock in your current dice score and roll the remaining dice to increase your turn total.")
+                                BulletPoint(title: "Score & End (Q)", text: "Bank your total turn score into your overall score and end your turn.")
+                                BulletPoint(title: "Farkle (Bust!)", text: "If a roll results in NO scoring combinations, you 'Farkle' and lose ALL points earned during that turn.")
+                                BulletPoint(title: "Hot Dice", text: "If you manage to score with all six dice, you can roll all six again! Keep the momentum going until you decide to score or you Farkle.")
+                            }
+                        }
+                        
+                        Spacer(minLength: 50)
+                    }
+                    .padding()
+                }
+            }
+        }
+        #if os(macOS)
+        .frame(minWidth: 500, minHeight: 600)
+        #endif
+    }
+}
+
+struct SectionHeader: View {
+    let title: String
+    let icon: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(.yellow)
+            Text(title)
+                .font(.title2.bold())
+                .foregroundColor(.yellow)
+                .shadow(radius: 1)
+        }
+    }
+}
+
+struct ScoringRow: View {
+    let label: String
+    let points: String
+    
+    var body: some View {
+        HStack {
+            Text(label)
+                .foregroundColor(.white)
+            Spacer()
+            Text(points)
+                .fontWeight(.bold)
+                .foregroundColor(.yellow)
+        }
+    }
+}
+
+struct BulletPoint: View {
+    let title: String
+    let text: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("• \(title)")
+                .font(.headline)
+                .foregroundColor(.yellow)
+                .shadow(radius: 1)
+            Text(text)
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.8))
+                .padding(.leading, 15)
+        }
+    }
 }
