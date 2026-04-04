@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import Foundation
 
 func getLocalIPAddress() -> String {
@@ -163,29 +164,28 @@ struct GameRules {
     }
 }
 
-@Observable
-class Game {
-    var winPoints: UInt = 2000
-    private var playerScores: [Player: UInt] = [.p1: 0, .p2: 0]
+class Game: ObservableObject {
+    @Published var winPoints: UInt = 2000
+    @Published private var playerScores: [Player: UInt] = [.p1: 0, .p2: 0]
     
-    var currentPlayer: Player = .p1
-    var finished: Bool = false
-    var winner: Player? = nil
+    @Published var currentPlayer: Player = .p1
+    @Published var finished: Bool = false
+    @Published var winner: Player? = nil
     
-    var turnScore: UInt = 0
-    var remainingDice: [Int] = []
-    var selectedDice: Set<Int> = [] // indices
-    var isBust: Bool = false
-    var currentDieIndex = 0
+    @Published var turnScore: UInt = 0
+    @Published var remainingDice: [Int] = []
+    @Published var selectedDice: Set<Int> = [] // indices
+    @Published var isBust: Bool = false
+    @Published var currentDieIndex = 0
     
-    var isNetworkGame = false
-    var myPlayer: Player = .p1
-    var isRolling = false
-    var p1Ready = false
-    var p2Ready = false
+    @Published var isNetworkGame = false
+    @Published var myPlayer: Player = .p1
+    @Published var isRolling = false
+    @Published var p1Ready = false
+    @Published var p2Ready = false
     
-    var localP1Name: String = "Player 1"
-    var localP2Name: String = "Player 2"
+    @Published var localP1Name: String = "Player 1"
+    @Published var localP2Name: String = "Player 2"
     
     func getScore(player: Player) -> UInt {
         return playerScores[player] ?? 0
@@ -423,7 +423,8 @@ enum FocusField: Hashable {
 }
 
 struct ContentView: View {
-    @State private var game = Game()
+    @StateObject private var game = Game()
+    @ObservedObject private var networkManager = NetworkManager.shared
     @State private var isStarted = false
     @State private var hostIP = "127.0.0.1"
     @State private var goalScore: UInt = 2000
@@ -436,7 +437,7 @@ struct ContentView: View {
     @FocusState private var focusedField: FocusField?
     
     var isWaiting: Bool {
-        game.isNetworkGame && !NetworkManager.shared.isConnected
+        game.isNetworkGame && !networkManager.isConnected
     }
     
     var actionEnabled: Bool {

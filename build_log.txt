@@ -1,0 +1,415 @@
+./package_macos.sh
+Cleaning up...
+Building Farkle Apple...
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project "Farkle Apple.xcodeproj" -scheme "Farkle Apple" -configuration Release -derivedDataPath build -destination platform=macOS build
+
+2026-04-04 14:00:02.273 xcodebuild[20471:4200050] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:macOS, arch:arm64, id:00006020-0016504C0A87401E, name:My Mac }
+{ platform:macOS, arch:x86_64, id:00006020-0016504C0A87401E, name:My Mac }
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'Farkle Apple' in project 'Farkle Apple' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 1a7d551f53cd50424170c9fd1edb4029
+Build description path: /Users/yanxu/farkle/Farkle Apple/build/Build/Intermediates.noindex/XCBuildData/1a7d551f53cd50424170c9fd1edb4029.xcbuilddata
+CreateBuildDirectory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products
+    cd /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple.xcodeproj
+    builtin-create-build-directory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products
+
+CreateBuildDirectory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex
+    cd /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple.xcodeproj
+    builtin-create-build-directory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk /Users/yanxu/farkle/Farkle\ Apple/build/SDKStatCaches.noindex/macosx26.4-25E236-30f9ca8789b706f8bd3fc906a70d770f.sdkstatcache
+    cd /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk -o /Users/yanxu/farkle/Farkle\ Apple/build/SDKStatCaches.noindex/macosx26.4-25E236-30f9ca8789b706f8bd3fc906a70d770f.sdkstatcache
+
+CreateBuildDirectory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release
+    cd /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple.xcodeproj
+    builtin-create-build-directory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release
+
+CreateBuildDirectory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple.xcodeproj
+    builtin-create-build-directory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple.xcodeproj
+    builtin-create-build-directory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release
+    cd /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple.xcodeproj
+    builtin-create-build-directory /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple-580193e9903478220c3071596221a560-VFS/all-product-headers.yaml
+    cd /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple.xcodeproj
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple-580193e9903478220c3071596221a560-VFS/all-product-headers.yaml
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/empty-YanFarkle.plist (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/empty-YanFarkle.plist
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.DependencyMetadataFileList (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-project-headers.hmap (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-project-headers.hmap
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.DependencyStaticMetadataFileList (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-own-target-headers.hmap (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-generated-files.hmap (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-generated-files.hmap
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-all-target-headers.hmap (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-all-non-framework-target-headers.hmap (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.hmap (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.hmap
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.LinkFileList (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.LinkFileList
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple_const_extract_protocols.json (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftConstValuesFileList (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftFileList (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftFileList
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple-OutputFileMap.json (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple-OutputFileMap.json
+
+MkDir /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /bin/mkdir -p /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents
+
+WriteAuxiliaryFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/Entitlements.plist (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    write-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/Entitlements.plist
+
+MkDir /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/MacOS (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /bin/mkdir -p /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/MacOS
+
+MkDir /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Resources (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /bin/mkdir -p /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Resources
+
+MkDir /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /bin/mkdir -p /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app
+
+ProcessProductPackaging "" /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.app.xcent (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    
+    Entitlements:
+    
+    {
+    "com.apple.security.files.user-selected.read-only" = 1;
+    "com.apple.security.get-task-allow" = 1;
+}
+    
+    builtin-productPackagingUtility -entitlements -format xml -o /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.app.xcent
+
+ProcessProductPackagingDER /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.app.xcent /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.app.xcent.der (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /usr/bin/derq query -f xml -i /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.app.xcent -o /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.app.xcent.der --raw
+
+GenerateAssetSymbols /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple/Assets.xcassets /Users/yanxu/farkle/Farkle\ Apple/FarkleIcon.icon (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple/Assets.xcassets /Users/yanxu/farkle/Farkle\ Apple/FarkleIcon.icon --compile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Resources --output-format human-readable-text --notices --warnings --export-dependency-info /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_dependencies --output-partial-info-plist /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_generated_info.plist --app-icon FarkleIcon --accent-color AccentColor --enable-on-demand-resources NO --development-region en --target-device mac --minimum-deployment-target 26.3.1 --platform macosx --bundle-identifier com.ethanyanxu.Farkle-Apple --generate-swift-asset-symbols /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/yanxu/farkle/Farkle Apple/build/Build/Intermediates.noindex/Farkle Apple.build/Release/Farkle Apple.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/yanxu/farkle/Farkle Apple/build/Build/Intermediates.noindex/Farkle Apple.build/Release/Farkle Apple.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/yanxu/farkle/Farkle Apple/build/Build/Intermediates.noindex/Farkle Apple.build/Release/Farkle Apple.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+MkDir /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_output/thinned (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /bin/mkdir -p /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_output/thinned
+
+MkDir /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_output/unthinned (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /bin/mkdir -p /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_output/unthinned
+
+CompileAssetCatalogVariant thinned /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Resources /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple/Assets.xcassets /Users/yanxu/farkle/Farkle\ Apple/FarkleIcon.icon (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple/Assets.xcassets /Users/yanxu/farkle/Farkle\ Apple/FarkleIcon.icon --compile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_generated_info.plist_thinned --app-icon FarkleIcon --accent-color AccentColor --enable-on-demand-resources NO --development-region en --target-device mac --minimum-deployment-target 26.3.1 --platform macosx
+/* com.apple.actool.compilation-results */
+/Users/yanxu/farkle/Farkle Apple/build/Build/Intermediates.noindex/Farkle Apple.build/Release/Farkle Apple.build/assetcatalog_generated_info.plist_thinned
+/Users/yanxu/farkle/Farkle Apple/build/Build/Intermediates.noindex/Farkle Apple.build/Release/Farkle Apple.build/assetcatalog_output/thinned/Assets.car
+/Users/yanxu/farkle/Farkle Apple/build/Build/Intermediates.noindex/Farkle Apple.build/Release/Farkle Apple.build/assetcatalog_output/thinned/FarkleIcon.icns
+
+
+LinkAssetCatalog /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple/Assets.xcassets /Users/yanxu/farkle/Farkle\ Apple/FarkleIcon.icon (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-linkAssetCatalog --thinned /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_output/thinned --thinned-dependencies /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_generated_info.plist_unthinned --output /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Resources --plist-output /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/yanxu/farkle/Farkle Apple/build/Build/Products/Release/YanFarkle.app/Contents/Resources/FarkleIcon.icns (in target 'Farkle Apple' from project 'Farkle Apple')
+note: Emplaced /Users/yanxu/farkle/Farkle Apple/build/Build/Products/Release/YanFarkle.app/Contents/Resources/Assets.car (in target 'Farkle Apple' from project 'Farkle Apple')
+
+ProcessInfoPlistFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Info.plist /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/empty-YanFarkle.plist (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-infoPlistUtility /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/empty-YanFarkle.plist -producttype com.apple.product-type.application -genpkginfo /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/PkgInfo -expandbuildsettings -platform macosx -additionalcontentfile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/assetcatalog_generated_info.plist -o /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Info.plist
+
+SwiftDriver Farkle\ Apple normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name YanFarkle -O -whole-module-optimization @/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftFileList -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk -target arm64-apple-macos26.3.1 -g -module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release -F /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release -emit-localized-strings -emit-localized-strings-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64 -c -num-threads 10 -Xcc -ivfsstatcache -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/SDKStatCaches.noindex/macosx26.4-25E236-30f9ca8789b706f8bd3fc906a70d770f.sdkstatcache -output-file-map /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -sdk-module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple_const_extract_protocols.json -Xcc -iquote -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-generated-files.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-own-target-headers.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-all-target-headers.hmap -Xcc -iquote -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-project-headers.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/include -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources-normal/arm64 -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/arm64 -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle-Swift.h -working-directory /Users/yanxu/farkle/Farkle\ Apple -no-emit-module-separately-wmo
+
+SwiftDriver\ Compilation Farkle\ Apple normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name YanFarkle -O -whole-module-optimization @/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftFileList -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk -target arm64-apple-macos26.3.1 -g -module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release -F /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release -emit-localized-strings -emit-localized-strings-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64 -c -num-threads 10 -Xcc -ivfsstatcache -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/SDKStatCaches.noindex/macosx26.4-25E236-30f9ca8789b706f8bd3fc906a70d770f.sdkstatcache -output-file-map /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -sdk-module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple_const_extract_protocols.json -Xcc -iquote -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-generated-files.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-own-target-headers.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-all-target-headers.hmap -Xcc -iquote -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-project-headers.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/include -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources-normal/arm64 -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/arm64 -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle-Swift.h -working-directory /Users/yanxu/farkle/Farkle\ Apple -no-emit-module-separately-wmo
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stddef-5L642LXLD6E89Y050BO5N11JX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ptrauth-4SOAKVPDPVDWKTHDD15DP4QPU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ptrcheck-ATJ9TZTFWC7IMDWR5AZAPLUSK.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_SwiftConcurrencyShims-AXGRQGJKOZAY19QOJX96CJEJA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stdbool-8WQTV0JGFOA13YDF4774S59W.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_AvailabilityInternal-W51XXEDZ82HT3G2BSH9M3J09.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/DeveloperToolsSupport-EN910W37SWWP09LXALCC022F2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_float-9WADXIF29XOEMCY7IQQTMO3HJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stdarg-6Z5KU8CVD27L72DZCL9J178PR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/SwiftShims-AKF7U279FU3MKYN56DEUD6BJX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_DarwinFoundation1-DJ4DY81WT45TMO3VJ2FQ0X23S.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_DarwinFoundation2-7PHW8W7YMEXLNMFPJ1CN1DDSF.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_limits-7RX3WIB62G5GU57YO3C4PS45G.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stdint-43LIA1E4LLGMYZFXMDHN03U0S.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/sys_types-EKPBF4IBRY4V5JL4NTFB1K84G.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_tgmath-1Z8R1AXEY7MKUMU8NW3FFA1JK.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_intrinsics-2F2ITGUSJW1HK3M0UGWD7YZ40.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/libDER-ELRQ02LWGTX819I8YMS7DVOZM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stdatomic-83UBN8JV73OHXM1C9GTQYKX00.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_DarwinFoundation3-9474D22M5BG7S69CFSZAKQVNE.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/OpenGL-CDCG6PKO62YHI2H9CEBTZ0T1L.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_inttypes-AO9BNFEFFNIWOH349R92WCDJK.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Darwin-C3YJV8L73KWS2SB6T4Q8MWSAG.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/simd-2XIHJLIU2INGR5VEQYZV95Q4K.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CUPS-53PIQU4QIIMI2Q2XDBWX5Q4LC.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/launch-5I9JHMMT1Z2BDKIASBN46CAIB.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/libkern-3Q8HMDP629KJBEFT5ARDU97W1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/MachO-CJKCF6OEZ7XVGQT6AIJWZMV43.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Spatial-18W8EVR4VTUQDN9SMYR321Z59.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ObjectiveC-LSYKEWNS96GBGW7J69DZC7I0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/os_object-A1HSHTJI1J2K5JJ41I1P8X1YF.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/os_workgroup-BUVZMHIRHJU4SWVG5KCYUZ0DS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Dispatch-J70W4EYVIAYGI6HKXRID0UHU.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/XPC-3NUC0F5F0L696O84S0DKS1WJ8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreFoundation-D3FO1MQF3EBPNO7AYKR1NITLH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/dnssd-4KOEEGMNXBXS4FZCX85QGTTUE.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/os-5G506U095USGXTLT9V7WBL0Y4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CFNetwork-E7YXW0JWAN5MG3WVR0LSTUWVF.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ColorSync-27XSSOXBE9U07ABZF586H9RAG.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Security-7WG2Y0ODSIPLQHZJU8GVRI4HP.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/IOKit-2ATT6IDKJTBWDGNLHUPKYW45W.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreGraphics-BLQ89YEGK1HQDZD32QS0FBTP8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/DiskArbitration-3FT04O63IYV24IXTK39OF10FS.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreServices-1SKAOPYT8LJ4PAXEK35TXX94Z.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ImageIO-8FMANGNEQNB2VY1ETNXSNO2NK.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreText-BHXO3VRBPNQBR5PP38F56JCS9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Foundation-MGDLLEKKXPFWNLJ87MWGYXBI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ApplicationServices-D0QV2K0CVY899H5077B69FIFX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/IOSurface-1XY1QPYMG84QD0PA349B6Y8I8.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Symbols-3OLXG0JX2LSRA59NBFFWS8HZB.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Accessibility-21DAXHXTXB2QNL4RHNGHEE07R.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreTransferable-2QHFND9RRYEZYZ80EYNE6LDWI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Network-S0ZT8VZQIS36TPOKS9SQFDK1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/OSLog-1WNV9GTVZFZMDIQB9O2MSH53I.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/UniformTypeIdentifiers-ELGGBCFC0CRVD4VWYEDYU0LYF.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreData-EHHZ4C2ZU0CQUXOINPWNKT84X.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/DataDetection-9VSJ3YR5FG5RL8E13EBFKS6B4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Metal-2LJISSP2KMAZJ227RZTFGX59K.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreVideo-7GZTYFPMAAATNKYY4M7B9BTLR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreImage-2VYZX1VOMYFXNTYYAXBN07PAM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/QuartzCore-E43JZH6FBRIRWVI97YBFGQ07P.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/SwiftUICore-EFJMPCGAXVLLEC23NZ8QYUHEY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/AppKit-CT61YZRF3W0V6HM7OMADKAM8Y.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/SwiftUI-OS5AFBNESRQ09PLA0P6ELOTW.pcm
+
+SwiftCompile normal arm64 Compiling\ ContentView.swift,\ Farkle_AppleApp.swift,\ NetworkManager.swift,\ GeneratedAssetSymbols.swift /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple/ContentView.swift /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple/Farkle_AppleApp.swift /Users/yanxu/farkle/Farkle\ Apple/Farkle\ Apple/NetworkManager.swift /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/GeneratedAssetSymbols.swift /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Symbols.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/CoreText.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Network.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/AppKit.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/_DarwinFoundation2.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/QuartzCore.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Distributed.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/CoreData.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Foundation.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/XPC.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Swift.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/OSLog.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Combine.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/SwiftUICore.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/CoreTransferable.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Accessibility.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/SwiftUI.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Darwin.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/IOKit.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Dispatch.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/ObjectiveC.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/DataDetection.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/_Builtin_float.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/CoreFoundation.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/UniformTypeIdentifiers.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/_Concurrency.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/os.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/CoreImage.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Observation.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/_StringProcessing.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/simd.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/_DarwinFoundation3.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/System.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Spatial.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/DeveloperToolsSupport.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/CoreVideo.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/Metal.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/CoreGraphics.swiftmodule/arm64e-apple-macos.swiftmodule /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/prebuilt-modules/26.4/_DarwinFoundation1.swiftmodule/arm64e-apple-macos.swiftmodule /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_float-9WADXIF29XOEMCY7IQQTMO3HJ.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ColorSync-27XSSOXBE9U07ABZF586H9RAG.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreGraphics-BLQ89YEGK1HQDZD32QS0FBTP8.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_DarwinFoundation3-9474D22M5BG7S69CFSZAKQVNE.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreText-BHXO3VRBPNQBR5PP38F56JCS9.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_intrinsics-2F2ITGUSJW1HK3M0UGWD7YZ40.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/simd-2XIHJLIU2INGR5VEQYZV95Q4K.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Metal-2LJISSP2KMAZJ227RZTFGX59K.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/OpenGL-CDCG6PKO62YHI2H9CEBTZ0T1L.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/XPC-3NUC0F5F0L696O84S0DKS1WJ8.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/SwiftUI-OS5AFBNESRQ09PLA0P6ELOTW.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/DiskArbitration-3FT04O63IYV24IXTK39OF10FS.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Darwin-C3YJV8L73KWS2SB6T4Q8MWSAG.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_inttypes-AO9BNFEFFNIWOH349R92WCDJK.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/dnssd-4KOEEGMNXBXS4FZCX85QGTTUE.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Symbols-3OLXG0JX2LSRA59NBFFWS8HZB.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/libkern-3Q8HMDP629KJBEFT5ARDU97W1.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CUPS-53PIQU4QIIMI2Q2XDBWX5Q4LC.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Security-7WG2Y0ODSIPLQHZJU8GVRI4HP.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/IOKit-2ATT6IDKJTBWDGNLHUPKYW45W.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_limits-7RX3WIB62G5GU57YO3C4PS45G.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CFNetwork-E7YXW0JWAN5MG3WVR0LSTUWVF.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stdint-43LIA1E4LLGMYZFXMDHN03U0S.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/DeveloperToolsSupport-EN910W37SWWP09LXALCC022F2.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ApplicationServices-D0QV2K0CVY899H5077B69FIFX.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stddef-5L642LXLD6E89Y050BO5N11JX.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/SwiftUICore-EFJMPCGAXVLLEC23NZ8QYUHEY.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Foundation-MGDLLEKKXPFWNLJ87MWGYXBI.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/os_object-A1HSHTJI1J2K5JJ41I1P8X1YF.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreData-EHHZ4C2ZU0CQUXOINPWNKT84X.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_tgmath-1Z8R1AXEY7MKUMU8NW3FFA1JK.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_AvailabilityInternal-W51XXEDZ82HT3G2BSH9M3J09.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/sys_types-EKPBF4IBRY4V5JL4NTFB1K84G.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreServices-1SKAOPYT8LJ4PAXEK35TXX94Z.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreImage-2VYZX1VOMYFXNTYYAXBN07PAM.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ObjectiveC-LSYKEWNS96GBGW7J69DZC7I0.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/os-5G506U095USGXTLT9V7WBL0Y4.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/UniformTypeIdentifiers-ELGGBCFC0CRVD4VWYEDYU0LYF.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stdbool-8WQTV0JGFOA13YDF4774S59W.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/IOSurface-1XY1QPYMG84QD0PA349B6Y8I8.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ptrauth-4SOAKVPDPVDWKTHDD15DP4QPU.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/SwiftShims-AKF7U279FU3MKYN56DEUD6BJX.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/QuartzCore-E43JZH6FBRIRWVI97YBFGQ07P.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stdarg-6Z5KU8CVD27L72DZCL9J178PR.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/os_workgroup-BUVZMHIRHJU4SWVG5KCYUZ0DS.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_Builtin_stdatomic-83UBN8JV73OHXM1C9GTQYKX00.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreFoundation-D3FO1MQF3EBPNO7AYKR1NITLH.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_SwiftConcurrencyShims-AXGRQGJKOZAY19QOJX96CJEJA.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreTransferable-2QHFND9RRYEZYZ80EYNE6LDWI.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/DataDetection-9VSJ3YR5FG5RL8E13EBFKS6B4.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Dispatch-J70W4EYVIAYGI6HKXRID0UHU.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Network-S0ZT8VZQIS36TPOKS9SQFDK1.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ImageIO-8FMANGNEQNB2VY1ETNXSNO2NK.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Spatial-18W8EVR4VTUQDN9SMYR321Z59.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_DarwinFoundation1-DJ4DY81WT45TMO3VJ2FQ0X23S.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/CoreVideo-7GZTYFPMAAATNKYY4M7B9BTLR.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Accessibility-21DAXHXTXB2QNL4RHNGHEE07R.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/launch-5I9JHMMT1Z2BDKIASBN46CAIB.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/OSLog-1WNV9GTVZFZMDIQB9O2MSH53I.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/AppKit-CT61YZRF3W0V6HM7OMADKAM8Y.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/ptrcheck-ATJ9TZTFWC7IMDWR5AZAPLUSK.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/_DarwinFoundation2-7PHW8W7YMEXLNMFPJ1CN1DDSF.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/libDER-ELRQ02LWGTX819I8YMS7DVOZM.pcm /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/MachO-CJKCF6OEZ7XVGQT6AIJWZMV43.pcm /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle-dependencies-1.json (in target 'Farkle Apple' from project 'Farkle Apple')
+
+CompileSwift normal arm64 (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling ContentView.swift, Farkle_AppleApp.swift, NetworkManager.swift, GeneratedAssetSymbols.swift (in target 'Farkle Apple' from project 'Farkle Apple')
+
+SwiftDriver\ Compilation\ Requirements Farkle\ Apple normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name YanFarkle -O -whole-module-optimization @/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftFileList -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk -target arm64-apple-macos26.3.1 -g -module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release -F /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release -emit-localized-strings -emit-localized-strings-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64 -c -num-threads 10 -Xcc -ivfsstatcache -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/SDKStatCaches.noindex/macosx26.4-25E236-30f9ca8789b706f8bd3fc906a70d770f.sdkstatcache -output-file-map /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -sdk-module-cache-path /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/yanxu/farkle/Farkle\ Apple/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/Farkle\ Apple_const_extract_protocols.json -Xcc -iquote -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-generated-files.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-own-target-headers.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-all-target-headers.hmap -Xcc -iquote -Xcc /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle-project-headers.hmap -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/include -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources-normal/arm64 -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/arm64 -Xcc -I/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle-Swift.h -working-directory /Users/yanxu/farkle/Farkle\ Apple -no-emit-module-separately-wmo
+
+SwiftMergeGeneratedHeaders /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/YanFarkle-Swift.h /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle-Swift.h (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-swiftHeaderTool -arch arm64 /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle-Swift.h -o /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/DerivedSources/YanFarkle-Swift.h
+
+Copy /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.swiftmodule/arm64-apple-macos.abi.json /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.abi.json (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.abi.json /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.swiftmodule/arm64-apple-macos.abi.json
+
+Copy /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.swiftmodule/arm64-apple-macos.swiftdoc /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftdoc (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftdoc /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.swiftmodule/arm64-apple-macos.swiftdoc
+
+Copy /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.swiftmodule/arm64-apple-macos.swiftmodule /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftmodule (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftmodule /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.swiftmodule/arm64-apple-macos.swiftmodule
+
+Copy /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.swiftmodule/Project/arm64-apple-macos.swiftsourceinfo /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftsourceinfo (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftsourceinfo /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.swiftmodule/Project/arm64-apple-macos.swiftsourceinfo
+
+Ld /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/MacOS/YanFarkle normal (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos26.3.1 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk -Os -L/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release -L/Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release -F/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release -F/Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release -filelist /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.LinkFileList -Xlinker -rpath -Xlinker @executable_path/../Frameworks -Xlinker -object_path_lto -Xlinker /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle_lto.o -Xlinker -dependency_info -Xlinker /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.swiftmodule @/Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle-linker-args.resp -Xlinker -no_adhoc_codesign -o /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/MacOS/YanFarkle
+
+CopySwiftLibs /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/MacOS/YanFarkle --scan-folder /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Frameworks --scan-folder /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/PlugIns --scan-folder /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Library/SystemExtensions --scan-folder /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Extensions --platform macosx --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name YanFarkle --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk --xcode-version 17E192 --platform-family macOS --deployment-target 26.3.1 --bundle-identifier com.ethanyanxu.Farkle-Apple --output /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/Resources --target-triple arm64-apple-macos26.3.1 --binary-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/MacOS/YanFarkle --dependency-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle_dependency_info.dat --stringsdata-file /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftFileList --metadata-file-list /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.DependencyMetadataFileList --static-metadata-file-list /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.DependencyStaticMetadataFileList --swift-const-vals-list /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/Objects-normal/arm64/YanFarkle.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-04-04 14:00:12.071 appintentsmetadataprocessor[20690:4201636] Starting appintentsmetadataprocessor export
+2026-04-04 14:00:12.072 appintentsmetadataprocessor[20690:4201636] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+GenerateDSYMFile /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app.dSYM /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/MacOS/YanFarkle (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app/Contents/MacOS/YanFarkle -o /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app.dSYM
+
+CodeSign /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --entitlements /Users/yanxu/farkle/Farkle\ Apple/build/Build/Intermediates.noindex/Farkle\ Apple.build/Release/Farkle\ Apple.build/YanFarkle.app.xcent --timestamp\=none --generate-entitlement-der /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app
+
+RegisterExecutionPolicyException /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-RegisterExecutionPolicyException /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app
+
+Validate /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    builtin-validationUtility /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app -no-validate-extension -infoplist-subpath Contents/Info.plist
+
+Touch /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /usr/bin/touch -c /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app
+
+RegisterWithLaunchServices /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app (in target 'Farkle Apple' from project 'Farkle Apple')
+    cd /Users/yanxu/farkle/Farkle\ Apple
+    /System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister -f -R -trusted /Users/yanxu/farkle/Farkle\ Apple/build/Build/Products/Release/YanFarkle.app
+
+** BUILD SUCCEEDED **
+
+Preparing DMG structure...
+Creating DMG...
+created: /Users/yanxu/farkle/Farkle Apple/Farkle.dmg
+Cleaning up temporary files...
+Success! Farkle.dmg has been created.

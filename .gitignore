@@ -1,0 +1,22 @@
+# Xcode
+#
+# gitignore contributors: switch to the .gitignore template config at https://gitignore.io/g/xcode
+#
+build/
+DerivedData/
+*.moved-aside
+*.xcuserstate
+
+# macOS
+#
+.DS_Store
+
+# User settings
+#
+xcuserdata/
+
+# App & Packaging
+#
+*.app/
+*.dmg
+dmg_staging/

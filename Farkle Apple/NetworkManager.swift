@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import Combine
 
 struct GameStatePacket: Codable, Equatable {
     var player1Score: Int
@@ -61,14 +62,13 @@ struct NetworkPacketDecodable: Decodable {
     }
 }
 
-@Observable
-class NetworkManager {
+class NetworkManager: ObservableObject {
     static let shared = NetworkManager()
     
-    var isHosting = false
-    var isConnected = false
-    var isConnecting = false
-    var connectionError: String? = nil
+    @Published var isHosting = false
+    @Published var isConnected = false
+    @Published var isConnecting = false
+    @Published var connectionError: String? = nil
     
     private var listener: NWListener?
     private var connection: NWConnection?
