@@ -38,10 +38,6 @@ enum Player: Int {
     var next: Player {
         return (self == .p1) ? .p2 : .p1
     }
-    
-    var name: String {
-        return self == .p1 ? "Player 1" : "Player 2"
-    }
 }
 
 struct GameRules {
@@ -188,6 +184,9 @@ class Game {
     var p1Ready = false
     var p2Ready = false
     
+    var localP1Name: String = "Player 1"
+    var localP2Name: String = "Player 2"
+    
     func getScore(player: Player) -> UInt {
         return playerScores[player] ?? 0
     }
@@ -200,7 +199,8 @@ class Game {
         playerScores = [.p1: 0, .p2: 0]
         finished = false
         winner = nil
-        currentPlayer = .p1
+        currentPlayer = Bool.random() ? .p1 : .p2
+        print("[GAME] Random starting player: \(currentPlayer == .p1 ? "P1 (Host)" : "P2 (Client)")")
         p1Ready = false
         p2Ready = false
         resetTurn()
@@ -289,6 +289,14 @@ class Game {
             selectedDice.remove(index)
         } else {
             selectedDice.insert(index)
+        }
+    }
+    
+    func playerName(for player: Player) -> String {
+        if isNetworkGame {
+            return player == myPlayer ? "You" : "Opponent"
+        } else {
+            return player == .p1 ? localP1Name : localP2Name
         }
     }
     
@@ -410,6 +418,10 @@ struct DieView: View {
     }
 }
 
+enum FocusField: Hashable {
+    case hostIP, p1Name, p2Name
+}
+
 struct ContentView: View {
     @State private var game = Game()
     @State private var isStarted = false
@@ -417,6 +429,11 @@ struct ContentView: View {
     @State private var goalScore: UInt = 2000
     @State private var isConfiguring = false
     @State private var hasReceivedInitialState = false
+    
+    @State private var p1NameInput = ""
+    @State private var p2NameInput = ""
+    
+    @FocusState private var focusedField: FocusField?
     
     var isWaiting: Bool {
         game.isNetworkGame && !NetworkManager.shared.isConnected
@@ -445,6 +462,7 @@ struct ContentView: View {
                         .padding(.bottom, 20)
                     
                     Button(action: {
+                        focusedField = nil
                         game.start()
                         hasReceivedInitialState = true
                         game.isNetworkGame = false
@@ -466,6 +484,7 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                     
                     Button(action: {
+                        focusedField = nil
                         game.start()
                         hasReceivedInitialState = true
                         game.isNetworkGame = true
@@ -488,46 +507,96 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                     
-                    HStack {
-                        TextField("Host IP", text: $hostIP)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: 150)
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(10)
-                            .foregroundColor(.black)
-                        
-                        Button(action: {
-                            game.start()
-                            hasReceivedInitialState = false
-                            game.isNetworkGame = true
-                            game.myPlayer = .p2
-                            NetworkManager.shared.connect(host: hostIP)
-                            setupNetworkCallbacks()
-                            withAnimation {
-                                isStarted = true
+                    VStack(spacing: 12) {
+                        HStack {
+                            TextField("Host IP", text: $hostIP)
+                                .textFieldStyle(.plain)
+                                .padding(10)
+                                .background(Color.white)
+                                .foregroundColor(.black)
+                                .cornerRadius(8)
+                                .focused($focusedField, equals: .hostIP)
+                                .frame(width: 150)
+                            
+                            Button(action: {
+                                focusedField = nil
+                                game.start()
+                                hasReceivedInitialState = false
+                                game.isNetworkGame = true
+                                game.myPlayer = .p2
+                                NetworkManager.shared.connect(host: hostIP)
+                                setupNetworkCallbacks()
+                            }) {
+                                if NetworkManager.shared.isConnecting {
+                                    ProgressView()
+                                        .tint(.white)
+                                        .frame(width: 40)
+                                } else {
+                                    Text("Join")
+                                        .font(.title3.bold())
+                                }
                             }
-                        }) {
-                            Text("Join")
-                                .font(.title3.bold())
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
-                                .background(Color.orange)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(NetworkManager.shared.isConnecting ? Color.gray : Color.orange)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .buttonStyle(.plain)
+                            .disabled(NetworkManager.shared.isConnecting)
                         }
-                        .buttonStyle(.plain)
+                        
+                        if NetworkManager.shared.isConnecting {
+                            Text("Connecting...")
+                                .font(.caption.bold())
+                                .foregroundColor(.yellow)
+                        } else if let error = NetworkManager.shared.connectionError {
+                            Text(error)
+                                .font(.caption.bold())
+                                .foregroundColor(.red)
+                                .frame(maxWidth: 250)
+                                .multilineTextAlignment(.center)
+                        }
                     }
                     .padding(.top, 10)
                 }
             } else if isConfiguring {
-                VStack(spacing: 30) {
+                VStack(spacing: 20) {
                     Text("Game Setup")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
-                    HStack {
-                        Text("Victory Goal:")
+                    if !game.isNetworkGame {
+                        VStack(spacing: 15) {
+                            HStack {
+                                Text("P1 Name:")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(width: 100, alignment: .trailing)
+                                TextField("Player 1", text: $p1NameInput)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .focused($focusedField, equals: .p1Name)
+                                    .foregroundColor(.black)
+                                    .frame(width: 200)
+                            }
+                            HStack {
+                                Text("P2 Name:")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(width: 100, alignment: .trailing)
+                                TextField("Player 2", text: $p2NameInput)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .focused($focusedField, equals: .p2Name)
+                                    .foregroundColor(.black)
+                                    .frame(width: 200)
+                            }
+                        }
+                        .padding()
+                        .background(Color.black.opacity(0.3))
+                        .cornerRadius(15)
+                    }
+                    
+                    HStack(spacing: 20) {
+                        Text("Goal:")
                             .font(.title2.bold())
                             .foregroundColor(.white)
                         
@@ -543,7 +612,7 @@ struct ContentView: View {
                         Text("\(goalScore)")
                             .font(.title.bold())
                             .foregroundColor(.yellow)
-                            .frame(width: 80)
+                            .frame(width: 120) // Wider frame to prevent wrap
                         
                         Button(action: {
                             if goalScore < 10000 { goalScore += 1000 }
@@ -557,7 +626,12 @@ struct ContentView: View {
                     .padding(.bottom, 20)
                     
                     Button(action: {
+                        focusedField = nil
                         game.winPoints = goalScore
+                        if !game.isNetworkGame {
+                            game.localP1Name = p1NameInput.isEmpty ? "Player 1" : p1NameInput
+                            game.localP2Name = p2NameInput.isEmpty ? "Player 2" : p2NameInput
+                        }
                         game.start()
                         withAnimation {
                             isConfiguring = false
@@ -581,6 +655,7 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                     
                     Button(action: {
+                        focusedField = nil
                         NetworkManager.shared.stop()
                         withAnimation {
                             isStarted = false
@@ -601,7 +676,7 @@ struct ContentView: View {
                 }
             } else if game.finished {
                 VStack(spacing: 30) {
-                    Text("\(game.winner?.name ?? "Someone") Wins!")
+                    Text("\(game.winner != nil ? game.playerName(for: game.winner!) : "Someone") Wins!")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
@@ -617,15 +692,15 @@ struct ContentView: View {
                     
                     HStack(spacing: 40) {
                         VStack {
-                            Text("Player 1")
+                            Text(game.playerName(for: game.myPlayer))
                                 .font(.headline)
-                            Text("\(game.getScore(player: .p1))")
+                            Text("\(game.getScore(player: game.myPlayer))")
                                 .font(.largeTitle.bold())
                         }
                         VStack {
-                            Text("Player 2")
+                            Text(game.playerName(for: game.myPlayer.next))
                                 .font(.headline)
-                            Text("\(game.getScore(player: .p2))")
+                            Text("\(game.getScore(player: game.myPlayer.next))")
                                 .font(.largeTitle.bold())
                         }
                     }
@@ -633,7 +708,7 @@ struct ContentView: View {
                     
                     if game.isNetworkGame {
                         if NetworkManager.shared.isConnected {
-                            Text("Ready: \(game.p1Ready ? "[Player 1]" : "Player 1") | \(game.p2Ready ? "[Player 2]" : "Player 2")")
+                            Text("Ready: \(game.p1Ready ? "[You]" : "You") | \(game.p2Ready ? "[Opponent]" : "Opponent")")
                                 .font(.headline)
                                 .foregroundColor(.yellow)
                             
@@ -748,29 +823,29 @@ struct ContentView: View {
             
             // Score Board
             HStack {
-                scoreCard(for: .p1)
+                scoreCard(for: game.myPlayer)
                 Spacer()
-                scoreCard(for: .p2)
+                scoreCard(for: game.myPlayer.next)
             }
             .padding()
             
             Spacer()
             
             // Turn Info
-            VStack(spacing: 10) {
-                Text("\(game.currentPlayer.name)'s Turn" + (game.isNetworkGame ? (game.isLocalTurn ? " (You)" : "") : ""))
-                    .font(.title.bold())
-                    .foregroundColor(.white)
-                
-                if !isWaiting && hasReceivedInitialState {
+            if !isWaiting && hasReceivedInitialState {
+                VStack(spacing: 10) {
+                    Text("\(game.playerName(for: game.currentPlayer))'s Turn" + (game.isNetworkGame ? (game.isLocalTurn ? " (You)" : "") : ""))
+                        .font(.title.bold())
+                        .foregroundColor(.white)
+                    
                     Text("Goal: \(game.winPoints)")
                         .font(.headline)
                         .foregroundColor(.white.opacity(0.8))
+                    
+                    Text("Turn Score: \(game.turnScore)")
+                        .font(.title2)
+                        .foregroundColor(.yellow)
                 }
-                
-                Text("Turn Score: \(game.turnScore)")
-                    .font(.title2)
-                    .foregroundColor(.yellow)
             }
             
             Spacer()
@@ -842,10 +917,12 @@ struct ContentView: View {
             
             // Selected Dice Score
             let potentialScore = game.calculateSelectedScore()
-            Text("Selected Score: \(potentialScore)")
-                .font(.headline)
-                .foregroundColor(potentialScore > 0 ? .green : .white)
-                .padding(.bottom, 10)
+            if !isWaiting && hasReceivedInitialState {
+                Text("Selected Score: \(potentialScore)")
+                    .font(.headline)
+                    .foregroundColor(potentialScore > 0 ? .green : .white)
+                    .padding(.bottom, 10)
+            }
             
             // Actions
             HStack(spacing: 20) {
@@ -910,19 +987,20 @@ struct ContentView: View {
     
     @ViewBuilder
     func scoreCard(for player: Player) -> some View {
+        let isHighlighted = game.currentPlayer == player && !isWaiting && hasReceivedInitialState
         VStack {
-            Text(player.name)
+            Text(game.playerName(for: player))
                 .font(.headline)
             Text("\(game.getScore(player: player))")
                 .font(.title2.bold())
         }
         .padding()
-        .background(game.currentPlayer == player ? Color.white.opacity(0.3) : Color.black.opacity(0.3))
+        .background(isHighlighted ? Color.white.opacity(0.3) : Color.black.opacity(0.3))
         .cornerRadius(15)
         .foregroundColor(.white)
         .overlay(
             RoundedRectangle(cornerRadius: 15)
-                .stroke(game.currentPlayer == player ? Color.yellow : Color.clear, lineWidth: 2)
+                .stroke(isHighlighted ? Color.yellow : Color.clear, lineWidth: 2)
         )
     }
     
@@ -981,6 +1059,10 @@ struct ContentView: View {
             if game.isLocalAuthority {
                 withAnimation {
                     isConfiguring = true
+                }
+            } else {
+                withAnimation {
+                    isStarted = true
                 }
             }
         }

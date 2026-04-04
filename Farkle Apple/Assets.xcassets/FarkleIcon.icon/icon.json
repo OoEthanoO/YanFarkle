@@ -1,0 +1,47 @@
+{
+  "fill" : {
+    "automatic-gradient" : "srgb:0.10196,0.40000,0.20000,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "farkle_die_2.svg",
+          "name" : "farkle_die_2",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -13.556557581387551,
+              1.4434424186124488
+            ]
+          }
+        },
+        {
+          "image-name" : "farkle_die_1.svg",
+          "name" : "farkle_die_1",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -13.556557581387551,
+              1.4434424186124488
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

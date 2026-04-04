@@ -72,6 +72,7 @@ class NetworkManager {
     
     private var listener: NWListener?
     private var connection: NWConnection?
+    private var timeoutWorkItem: DispatchWorkItem?
     private let queue = DispatchQueue(label: "NetworkQueue")
     
     var onStateReceived: ((GameStatePacket) -> Void)?
@@ -119,8 +120,20 @@ class NetworkManager {
     func connect(host: String, port: UInt16 = 9999) {
         stop(notify: false)
         isConnecting = true
+        connectionError = nil
+        
         let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
         let newConnection = NWConnection(to: endpoint, using: .tcp)
+        
+        // Start timeout timer
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self, self.isConnecting else { return }
+            self.connectionError = "Connection timed out. Make sure the host is online and you have the correct IP."
+            self.stop()
+        }
+        self.timeoutWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0, execute: workItem)
+        
         setupConnection(newConnection)
     }
     
@@ -131,6 +144,8 @@ class NetworkManager {
             DispatchQueue.main.async {
                 switch state {
                 case .ready:
+                    self?.timeoutWorkItem?.cancel()
+                    self?.timeoutWorkItem = nil
                     let wasConnected = self?.isConnected ?? false
                     self?.isConnected = true
                     self?.isConnecting = false
@@ -226,6 +241,9 @@ class NetworkManager {
     }
     
     func stop(notify: Bool = true) {
+        timeoutWorkItem?.cancel()
+        timeoutWorkItem = nil
+        
         listener?.cancel()
         listener = nil
         connection?.cancel()

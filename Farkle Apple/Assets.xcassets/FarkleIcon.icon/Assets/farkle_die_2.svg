@@ -1,0 +1,25 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Premium Gradient for Dice Faces -->
+    <linearGradient id="die_face_grad" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" />
+      <stop offset="1" stop-color="#F2F2F7" />
+    </linearGradient>
+    
+    <!-- Shadow for Depth -->
+    <filter id="premium_shadow" x="-50%" y="-50%" width="200%" height="200%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="20" dy="40" stdDeviation="30" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Die 2: Tilted Right (Value: 5) -->
+  <g filter="url(#premium_shadow)" transform="translate(480, 380) rotate(12 200 200)">
+    <rect width="400" height="400" rx="80" fill="url(#die_face_grad)" />
+    <!-- Five Pips for the '5' -->
+    <circle cx="100" cy="100" r="35" fill="#1D3557" />
+    <circle cx="300" cy="100" r="35" fill="#1D3557" />
+    <circle cx="100" cy="300" r="35" fill="#1D3557" />
+    <circle cx="300" cy="300" r="35" fill="#1D3557" />
+    <circle cx="200" cy="200" r="35" fill="#1D3557" />
+  </g>
+</svg>
