@@ -7,11 +7,25 @@
       "layers" : [
         {
           "image-name" : "farkle_die_2.svg",
-          "name" : "farkle_die_2"
+          "name" : "farkle_die_2",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -13.556557581387551,
+              1.4434424186125057
+            ]
+          }
         },
         {
           "image-name" : "farkle_die_1.svg",
-          "name" : "farkle_die_1"
+          "name" : "farkle_die_1",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -13.556557581387551,
+              1.4434424186125057
+            ]
+          }
         }
       ],
       "shadow" : {
