@@ -18,7 +18,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E697616B2F815876000055B7 /* YanFarkle */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "YanFarkle";
+			path = YanFarkle;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,10 +69,10 @@
 			fileSystemSynchronizedGroups = (
 				E697616B2F815876000055B7 /* YanFarkle */,
 			);
-			name = "YanFarkle";
+			name = YanFarkle;
 			packageProductDependencies = (
 			);
-			productName = "YanFarkle";
+			productName = YanFarkle;
 			productReference = E69761692F815876000055B7 /* YanFarkle.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -251,8 +251,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = FarkleIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = YanFarkle/YanFarkle.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_ENTITLEMENTS = "YanFarkle/YanFarkle.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 29LT93G54W;
@@ -276,7 +276,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3.1;
-				MARKETING_VERSION = 0.3;
+				MARKETING_VERSION = 0.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ethanyanxu.Farkle-Apple";
 				PRODUCT_NAME = YanFarkle;
 				REGISTER_APP_GROUPS = YES;
@@ -298,8 +298,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = FarkleIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = YanFarkle/YanFarkle.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_ENTITLEMENTS = "YanFarkle/YanFarkle.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 29LT93G54W;
@@ -323,7 +323,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.3.1;
-				MARKETING_VERSION = 0.3;
+				MARKETING_VERSION = 0.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ethanyanxu.Farkle-Apple";
 				PRODUCT_NAME = YanFarkle;
 				REGISTER_APP_GROUPS = YES;
