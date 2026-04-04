@@ -285,6 +285,7 @@ class Game: ObservableObject {
     }
     
     func toggleDieSelection(index: Int) {
+        objectWillChange.send()
         if selectedDice.contains(index) {
             selectedDice.remove(index)
         } else {
@@ -327,7 +328,7 @@ class Game: ObservableObject {
             currentPlayer: currentPlayer.rawValue,
             turnScore: Int(turnScore),
             remainingDice: remainingDice,
-            selectedDice: selectedDice,
+            selectedDice: Array(selectedDice),
             currentDieIndex: currentDieIndex,
             isBust: isBust,
             finished: finished,
@@ -340,12 +341,13 @@ class Game: ObservableObject {
     }
     
     func fromPacket(_ packet: GameStatePacket) {
+        objectWillChange.send()
         setScore(player: .p1, score: UInt(packet.player1Score))
         setScore(player: .p2, score: UInt(packet.player2Score))
         currentPlayer = Player(rawValue: packet.currentPlayer) ?? .p1
         turnScore = UInt(packet.turnScore)
         remainingDice = packet.remainingDice
-        selectedDice = packet.selectedDice
+        selectedDice = Set(packet.selectedDice)
         currentDieIndex = packet.remainingDice.isEmpty ? 0 : min(packet.currentDieIndex, packet.remainingDice.count - 1)
         isBust = packet.isBust
         finished = packet.finished
@@ -354,6 +356,8 @@ class Game: ObservableObject {
         isRolling = packet.isRolling ?? false
         p1Ready = packet.p1Ready ?? false
         p2Ready = packet.p2Ready ?? false
+        
+        print("[SYNC] Received selectedDice: \(selectedDice)")
     }
     
     var isLocalTurn: Bool {
@@ -366,7 +370,9 @@ class Game: ObservableObject {
     
     func syncState() {
         if isNetworkGame && NetworkManager.shared.isHosting {
-            NetworkManager.shared.sendState(toPacket())
+            let packet = toPacket()
+            print("[NET] Host Sending State. selectedDice: \(packet.selectedDice)")
+            NetworkManager.shared.sendState(packet)
         }
     }
 }
@@ -702,9 +708,15 @@ struct ContentView: View {
                 }
             } else if game.finished {
                 VStack(spacing: 30) {
-                    Text("\(game.winner != nil ? game.playerName(for: game.winner!) : "Someone") Wins!")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                    if game.winner == game.myPlayer && game.isNetworkGame {
+                        Text("You Win!")
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                    } else {
+                        Text("\(game.winner != nil ? game.playerName(for: game.winner!) : "Someone") Wins!")
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
                     
                     if game.isNetworkGame && !NetworkManager.shared.isConnected {
                         Text("Opponent Disconnected")
@@ -921,34 +933,36 @@ struct ContentView: View {
                             .transition(.scale)
                     }
                     
-                    VStack(spacing: 20) {
-                        let diceWithIndices = Array(game.remainingDice.enumerated())
-                        let chunks = stride(from: 0, to: diceWithIndices.count, by: 3).map {
-                            Array(diceWithIndices[$0..<min($0 + 3, diceWithIndices.count)])
-                        }
-                        
-                        ForEach(0..<chunks.count, id: \.self) { rowIndex in
-                            HStack(spacing: 20) {
-                                ForEach(chunks[rowIndex], id: \.offset) { index, die in
-                                    DieView(value: die, isSelected: game.selectedDice.contains(index), isFocused: game.currentDieIndex == index)
-                                        .onTapGesture {
-                                            guard game.isLocalTurn && !game.isBust else { return }
-                                            
-                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                                game.currentDieIndex = index
-                                                if game.isLocalAuthority {
-                                                    game.toggleDieSelection(index: index)
-                                                    game.syncState()
-                                                } else {
-                                                    game.toggleDieSelection(index: index) // optimistic
-                                                    networkManager.sendAction(.SELECT, value: index)
-                                                }
-                                            }
-                                        }
+                    LazyVGrid(columns: [
+                        GridItem(.fixed(70), spacing: 20),
+                        GridItem(.fixed(70), spacing: 20),
+                        GridItem(.fixed(70), spacing: 20)
+                    ], spacing: 20) {
+                        ForEach(Array(game.remainingDice.enumerated()), id: \.offset) { index, die in
+                            DieView(value: die, isSelected: game.selectedDice.contains(index), isFocused: {
+                                #if os(macOS)
+                                return game.isLocalTurn && game.currentDieIndex == index
+                                #else
+                                return false
+                                #endif
+                            }())
+                            .onTapGesture {
+                                guard game.isLocalTurn && !game.isBust else { return }
+                                
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                    game.currentDieIndex = index
+                                    if game.isLocalAuthority {
+                                        game.toggleDieSelection(index: index)
+                                        game.syncState()
+                                    } else {
+                                        game.toggleDieSelection(index: index) // optimistic
+                                        networkManager.sendAction(.SELECT, value: index)
+                                    }
                                 }
                             }
                         }
                     }
+                    .frame(width: 250)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .overlay {
@@ -960,14 +974,52 @@ struct ContentView: View {
                     // Hidden buttons for keyboard navigation
                     .background(
                         ZStack {
-                            Button("") { game.moveFocusHorizontal(offset: -1) }.keyboardShortcut("a", modifiers: [])
-                            Button("") { game.moveFocusHorizontal(offset: 1) }.keyboardShortcut("d", modifiers: [])
-                            Button("") { game.moveFocusVertical(offset: -1) }.keyboardShortcut("w", modifiers: [])
-                            Button("") { game.moveFocusVertical(offset: 1) }.keyboardShortcut("s", modifiers: [])
+                            Button("") { 
+                                withAnimation {
+                                    game.moveFocusHorizontal(offset: -1)
+                                    if game.isLocalAuthority {
+                                        game.syncState()
+                                    } else if game.isLocalTurn {
+                                        networkManager.sendAction(.MOVE_TO, value: game.currentDieIndex)
+                                    }
+                                }
+                            }.keyboardShortcut("a", modifiers: [])
+                            Button("") { 
+                                withAnimation {
+                                    game.moveFocusHorizontal(offset: 1)
+                                    if game.isLocalAuthority {
+                                        game.syncState()
+                                    } else if game.isLocalTurn {
+                                        networkManager.sendAction(.MOVE_TO, value: game.currentDieIndex)
+                                    }
+                                }
+                            }.keyboardShortcut("d", modifiers: [])
+                            Button("") { 
+                                withAnimation {
+                                    game.moveFocusVertical(offset: -1)
+                                    if game.isLocalAuthority {
+                                        game.syncState()
+                                    } else if game.isLocalTurn {
+                                        networkManager.sendAction(.MOVE_TO, value: game.currentDieIndex)
+                                    }
+                                }
+                            }.keyboardShortcut("w", modifiers: [])
+                            Button("") { 
+                                withAnimation {
+                                    game.moveFocusVertical(offset: 1)
+                                    if game.isLocalAuthority {
+                                        game.syncState()
+                                    } else if game.isLocalTurn {
+                                        networkManager.sendAction(.MOVE_TO, value: game.currentDieIndex)
+                                    }
+                                }
+                            }.keyboardShortcut("s", modifiers: [])
                             Button("") { 
                                 withAnimation {
                                     game.toggleSelectedDie()
-                                    if !game.isLocalAuthority && game.isLocalTurn {
+                                    if game.isLocalAuthority {
+                                        game.syncState()
+                                    } else if game.isLocalTurn {
                                         networkManager.sendAction(.SELECT, value: game.currentDieIndex)
                                     }
                                 }
@@ -975,7 +1027,9 @@ struct ContentView: View {
                             Button("") { 
                                 withAnimation {
                                     game.toggleSelectedDie()
-                                    if !game.isLocalAuthority && game.isLocalTurn {
+                                    if game.isLocalAuthority {
+                                        game.syncState()
+                                    } else if game.isLocalTurn {
                                         networkManager.sendAction(.SELECT, value: game.currentDieIndex)
                                     }
                                 }
@@ -1096,6 +1150,7 @@ struct ContentView: View {
                 case .MOVE_TO:
                     game.currentDieIndex = value
                 case .SELECT:
+                    game.currentDieIndex = value // Safety: ensure Host's record of Client cursor state matches
                     game.toggleDieSelection(index: value)
                 case .CONTINUE:
                     _ = game.scoreAndContinue()

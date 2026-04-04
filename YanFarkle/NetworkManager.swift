@@ -8,7 +8,7 @@ struct GameStatePacket: Codable, Equatable {
     var currentPlayer: Int
     var turnScore: Int
     var remainingDice: [Int]
-    var selectedDice: Set<Int>
+    var selectedDice: [Int]
     var currentDieIndex: Int
     var isBust: Bool
     var finished: Bool
