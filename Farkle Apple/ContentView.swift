@@ -576,7 +576,7 @@ struct ContentView: View {
                                 TextField("Player 1", text: $p1NameInput)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .focused($focusedField, equals: .p1Name)
-                                    .foregroundColor(.black)
+                                    .foregroundColor(.primary)
                                     .frame(width: 200)
                             }
                             HStack {
@@ -587,7 +587,7 @@ struct ContentView: View {
                                 TextField("Player 2", text: $p2NameInput)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .focused($focusedField, equals: .p2Name)
-                                    .foregroundColor(.black)
+                                    .foregroundColor(.primary)
                                     .frame(width: 200)
                             }
                         }
@@ -886,32 +886,52 @@ struct ContentView: View {
                 .padding(40)
                 .background(Color.black.opacity(0.4))
                 .cornerRadius(20)
-            } else if game.isBust {
-                Text("BUST!")
-                    .font(.system(size: 64, weight: .heavy, design: .rounded))
-                    .foregroundColor(.red)
-                    .shadow(radius: 5)
-                    .transition(.scale)
             } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 20) {
-                    ForEach(Array(game.remainingDice.enumerated()), id: \.offset) { index, die in
-                        DieView(value: die, isSelected: game.selectedDice.contains(index))
-                            .onTapGesture {
-                                guard game.isLocalTurn else { return }
-                                
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                    if game.isLocalAuthority {
-                                        game.toggleDieSelection(index: index)
-                                        game.syncState()
-                                    } else {
-                                        game.toggleDieSelection(index: index) // optimistic
-                                        NetworkManager.shared.sendAction(.SELECT, value: index)
-                                    }
+                VStack(spacing: 20) {
+                    if game.isBust {
+                        Text("BUST!")
+                            .font(.system(size: 64, weight: .heavy, design: .rounded))
+                            .foregroundColor(.red)
+                            .shadow(radius: 5)
+                            .transition(.scale)
+                    }
+                    
+                    VStack(spacing: 20) {
+                        let diceWithIndices = Array(game.remainingDice.enumerated())
+                        let chunks = stride(from: 0, to: diceWithIndices.count, by: 3).map {
+                            Array(diceWithIndices[$0..<min($0 + 3, diceWithIndices.count)])
+                        }
+                        
+                        ForEach(0..<chunks.count, id: \.self) { rowIndex in
+                            HStack(spacing: 20) {
+                                ForEach(chunks[rowIndex], id: \.offset) { index, die in
+                                    DieView(value: die, isSelected: game.selectedDice.contains(index))
+                                        .onTapGesture {
+                                            guard game.isLocalTurn && !game.isBust else { return }
+                                            
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                                if game.isLocalAuthority {
+                                                    game.toggleDieSelection(index: index)
+                                                    game.syncState()
+                                                } else {
+                                                    game.toggleDieSelection(index: index) // optimistic
+                                                    networkManager.sendAction(.SELECT, value: index)
+                                                }
+                                            }
+                                        }
                                 }
                             }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .overlay {
+                        if game.isBust {
+                            Color.black.opacity(0.1)
+                                .cornerRadius(20)
+                        }
                     }
                 }
-                .padding()
             }
             
             Spacer()

@@ -4,7 +4,6 @@
 PROJECT_NAME="Farkle Apple.xcodeproj"
 SCHEME_NAME="Farkle Apple"
 BUILD_DIR="build"
-DMG_NAME="Farkle.dmg"
 APP_NAME="YanFarkle.app"
 
 # Clean up previous builds
@@ -27,6 +26,10 @@ if [ ! -d "$APP_PATH" ]; then
     echo "Error: Build failed or .app not found at $APP_PATH"
     exit 1
 fi
+
+# Get version from Info.plist
+VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist")
+DMG_NAME="Farkle_$VERSION.dmg"
 
 # Create a temporary directory for DMG packaging
 echo "Preparing DMG structure..."

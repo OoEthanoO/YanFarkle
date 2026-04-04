@@ -8,5 +8,5 @@ package:
 
 clean:
 	rm -rf build/
-	rm -f Farkle.dmg
+	rm -f Farkle*.dmg
 	rm -rf dmg_staging/
