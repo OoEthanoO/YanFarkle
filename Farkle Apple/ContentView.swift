@@ -292,6 +292,25 @@ class Game: ObservableObject {
         }
     }
     
+    func moveFocusHorizontal(offset: Int) {
+        guard !remainingDice.isEmpty else { return }
+        let count = remainingDice.count
+        currentDieIndex = (currentDieIndex + offset + count) % count
+    }
+    
+    func moveFocusVertical(offset: Int) {
+        guard !remainingDice.isEmpty else { return }
+        let newIndex = currentDieIndex + (offset * 3)
+        if newIndex >= 0 && newIndex < remainingDice.count {
+            currentDieIndex = newIndex
+        }
+    }
+    
+    func toggleSelectedDie() {
+        guard !remainingDice.isEmpty && currentDieIndex < remainingDice.count else { return }
+        toggleDieSelection(index: currentDieIndex)
+    }
+    
     func playerName(for player: Player) -> String {
         if isNetworkGame {
             return player == myPlayer ? "You" : "Opponent"
@@ -375,6 +394,7 @@ extension View {
 struct DieView: View {
     let value: Int
     let isSelected: Bool
+    let isFocused: Bool
     
     var body: some View {
         ZStack {
@@ -413,6 +433,11 @@ struct DieView: View {
             }
             .padding(10)
         }
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.blue, lineWidth: isFocused ? 4 : 0)
+        )
+        .frame(width: 70, height: 70)
         .scaleEffect(isSelected ? 1.1 : 1.0)
         .rotationEffect(.degrees(isSelected ? 5 : 0))
     }
@@ -835,7 +860,7 @@ struct ContentView: View {
             // Turn Info
             if !isWaiting && hasReceivedInitialState {
                 VStack(spacing: 10) {
-                    Text("\(game.playerName(for: game.currentPlayer))'s Turn" + (game.isNetworkGame ? (game.isLocalTurn ? " (You)" : "") : ""))
+                    Text(game.isNetworkGame ? (game.isLocalTurn ? "Your Turn" : "Opponent's Turn") : "\(game.playerName(for: game.currentPlayer))'s Turn")
                         .font(.title.bold())
                         .foregroundColor(.white)
                     
@@ -905,11 +930,12 @@ struct ContentView: View {
                         ForEach(0..<chunks.count, id: \.self) { rowIndex in
                             HStack(spacing: 20) {
                                 ForEach(chunks[rowIndex], id: \.offset) { index, die in
-                                    DieView(value: die, isSelected: game.selectedDice.contains(index))
+                                    DieView(value: die, isSelected: game.selectedDice.contains(index), isFocused: game.currentDieIndex == index)
                                         .onTapGesture {
                                             guard game.isLocalTurn && !game.isBust else { return }
                                             
                                             withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                                game.currentDieIndex = index
                                                 if game.isLocalAuthority {
                                                     game.toggleDieSelection(index: index)
                                                     game.syncState()
@@ -931,6 +957,32 @@ struct ContentView: View {
                                 .cornerRadius(20)
                         }
                     }
+                    // Hidden buttons for keyboard navigation
+                    .background(
+                        ZStack {
+                            Button("") { game.moveFocusHorizontal(offset: -1) }.keyboardShortcut("a", modifiers: [])
+                            Button("") { game.moveFocusHorizontal(offset: 1) }.keyboardShortcut("d", modifiers: [])
+                            Button("") { game.moveFocusVertical(offset: -1) }.keyboardShortcut("w", modifiers: [])
+                            Button("") { game.moveFocusVertical(offset: 1) }.keyboardShortcut("s", modifiers: [])
+                            Button("") { 
+                                withAnimation {
+                                    game.toggleSelectedDie()
+                                    if !game.isLocalAuthority && game.isLocalTurn {
+                                        networkManager.sendAction(.SELECT, value: game.currentDieIndex)
+                                    }
+                                }
+                            }.keyboardShortcut("e", modifiers: [])
+                            Button("") { 
+                                withAnimation {
+                                    game.toggleSelectedDie()
+                                    if !game.isLocalAuthority && game.isLocalTurn {
+                                        networkManager.sendAction(.SELECT, value: game.currentDieIndex)
+                                    }
+                                }
+                            }.keyboardShortcut(.space, modifiers: [])
+                        }
+                        .opacity(0)
+                    )
                 }
             }
             
@@ -964,6 +1016,7 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(!actionEnabled)
+                    .keyboardShortcut(.defaultAction) // Also allow Enter/Space for Next Player
                 } else {
                     Button(action: {
                         guard actionEnabled else { return }
@@ -982,6 +1035,7 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                     .disabled(potentialScore == 0 || !actionEnabled)
                     .opacity((potentialScore == 0 || !actionEnabled) ? 0.5 : 1)
+                    .keyboardShortcut("f", modifiers: [])
                     
                     Button(action: {
                         guard actionEnabled else { return }
@@ -1000,6 +1054,7 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                     .disabled(potentialScore == 0 || !actionEnabled)
                     .opacity((potentialScore == 0 || !actionEnabled) ? 0.5 : 1)
+                    .keyboardShortcut("q", modifiers: [])
                 }
             }
             .padding(.bottom, 40)
