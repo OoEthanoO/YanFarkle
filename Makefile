@@ -8,5 +8,5 @@ package: clean
 
 clean:
 	rm -rf build/
-	rm -f YanFarkle*.dmg
+	rm -f *.dmg
 	rm -rf dmg_staging/
