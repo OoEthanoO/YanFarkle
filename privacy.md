@@ -20,4 +20,4 @@ Because we do not collect any personal information, the App is fully compliant w
 We may update our Privacy Policy from time to time. Any changes will be posted on this page and will be effective immediately upon posting.
 
 ### 6. Contact Us
-If you have any questions about this Privacy Policy, please contact us at: [Your Mom's Email Address]
+If you have any questions about this Privacy Policy, please contact us at: jingqu2018@gmail.com
