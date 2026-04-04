@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuration
-PROJECT_NAME="Farkle Apple.xcodeproj"
-SCHEME_NAME="Farkle Apple"
+PROJECT_NAME="YanFarkle.xcodeproj"
+SCHEME_NAME="YanFarkle"
 BUILD_DIR="build"
 APP_NAME="YanFarkle.app"
 
@@ -29,7 +29,7 @@ fi
 
 # Get version from Info.plist
 VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist")
-DMG_NAME="Farkle_$VERSION.dmg"
+DMG_NAME="YanFarkle_$VERSION.dmg"
 
 # Create a temporary directory for DMG packaging
 echo "Preparing DMG structure..."

@@ -16,7 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 #endif
 
 @main
-struct Farkle_AppleApp: App {
+struct YanFarkleApp: App {
     #if os(macOS)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     #endif

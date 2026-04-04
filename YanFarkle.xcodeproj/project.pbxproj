@@ -16,9 +16,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		E697616B2F815876000055B7 /* Farkle Apple */ = {
+		E697616B2F815876000055B7 /* YanFarkle */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Farkle Apple";
+			path = "YanFarkle";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -37,7 +37,7 @@
 		E69761602F815876000055B7 = {
 			isa = PBXGroup;
 			children = (
-				E697616B2F815876000055B7 /* Farkle Apple */,
+				E697616B2F815876000055B7 /* YanFarkle */,
 				E697616A2F815876000055B7 /* Products */,
 				E697619B2F818321000055B7 /* FarkleIcon.icon */,
 			);
@@ -54,9 +54,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E69761682F815876000055B7 /* Farkle Apple */ = {
+		E69761682F815876000055B7 /* YanFarkle */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E69761742F815877000055B7 /* Build configuration list for PBXNativeTarget "Farkle Apple" */;
+			buildConfigurationList = E69761742F815877000055B7 /* Build configuration list for PBXNativeTarget "YanFarkle" */;
 			buildPhases = (
 				E69761652F815876000055B7 /* Sources */,
 				E69761662F815876000055B7 /* Frameworks */,
@@ -67,12 +67,12 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				E697616B2F815876000055B7 /* Farkle Apple */,
+				E697616B2F815876000055B7 /* YanFarkle */,
 			);
-			name = "Farkle Apple";
+			name = "YanFarkle";
 			packageProductDependencies = (
 			);
-			productName = "Farkle Apple";
+			productName = "YanFarkle";
 			productReference = E69761692F815876000055B7 /* YanFarkle.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -91,7 +91,7 @@
 					};
 				};
 			};
-			buildConfigurationList = E69761642F815876000055B7 /* Build configuration list for PBXProject "Farkle Apple" */;
+			buildConfigurationList = E69761642F815876000055B7 /* Build configuration list for PBXProject "YanFarkle" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -105,7 +105,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E69761682F815876000055B7 /* Farkle Apple */,
+				E69761682F815876000055B7 /* YanFarkle */,
 			);
 		};
 /* End PBXProject section */
@@ -252,7 +252,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = FarkleIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_ENTITLEMENTS = "Farkle Apple/Farkle Apple.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "YanFarkle/YanFarkle.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 29LT93G54W;
@@ -299,7 +299,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = FarkleIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_ENTITLEMENTS = "Farkle Apple/Farkle Apple.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "YanFarkle/YanFarkle.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 29LT93G54W;
@@ -343,7 +343,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E69761642F815876000055B7 /* Build configuration list for PBXProject "Farkle Apple" */ = {
+		E69761642F815876000055B7 /* Build configuration list for PBXProject "YanFarkle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E69761722F815877000055B7 /* Debug */,
@@ -352,7 +352,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E69761742F815877000055B7 /* Build configuration list for PBXNativeTarget "Farkle Apple" */ = {
+		E69761742F815877000055B7 /* Build configuration list for PBXNativeTarget "YanFarkle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E69761752F815877000055B7 /* Debug */,
