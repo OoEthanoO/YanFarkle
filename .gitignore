@@ -20,3 +20,4 @@ xcuserdata/
 *.app/
 *.dmg
 dmg_staging/
+build_log.txt
