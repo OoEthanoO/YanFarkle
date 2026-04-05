@@ -579,6 +579,16 @@ struct ContentView: View {
         game.isLocalTurn && !isWaiting && hasReceivedInitialState
     }
     
+    var appVersionString: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+        #if DEBUG
+        return "v\(version) (\(build)) (debug)"
+        #else
+        return "v\(version) (\(build))"
+        #endif
+    }
+    
     var body: some View {
         ZStack {
             // Background
@@ -718,6 +728,17 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 20)
+                }
+                
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Text(appVersionString)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                            .padding()
+                    }
                 }
             } else if isConfiguring {
                 VStack(spacing: 20) {
