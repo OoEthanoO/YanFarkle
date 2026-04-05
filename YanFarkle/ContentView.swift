@@ -366,14 +366,67 @@ class Game: ObservableObject {
     func moveFocusHorizontal(offset: Int) {
         guard !remainingDice.isEmpty else { return }
         let count = remainingDice.count
-        currentDieIndex = (currentDieIndex + offset + count) % count
+        let col = currentDieIndex % 3
+        let row = currentDieIndex / 3
+        
+        if offset == -1 {
+            if col > 0 {
+                let targetIdx = row * 3 + (col - 1)
+                if targetIdx < count {
+                    currentDieIndex = targetIdx
+                }
+            }
+        } else if offset == 1 {
+            if col < 2 {
+                let targetIdx = row * 3 + (col + 1)
+                if targetIdx < count {
+                    currentDieIndex = targetIdx
+                } else {
+                    var found = false
+                    for c in (col + 1)...2 {
+                        for r in 0...1 {
+                            let idx = r * 3 + c
+                            if idx < count {
+                                currentDieIndex = idx
+                                found = true
+                                break
+                            }
+                        }
+                        if found { break }
+                    }
+                }
+            }
+        }
     }
     
     func moveFocusVertical(offset: Int) {
         guard !remainingDice.isEmpty else { return }
-        let newIndex = currentDieIndex + (offset * 3)
-        if newIndex >= 0 && newIndex < remainingDice.count {
-            currentDieIndex = newIndex
+        let count = remainingDice.count
+        let col = currentDieIndex % 3
+        let row = currentDieIndex / 3
+        
+        if offset == -1 {
+            if row > 0 {
+                let targetIdx = (row - 1) * 3 + col
+                if targetIdx < count {
+                    currentDieIndex = targetIdx
+                }
+            }
+        } else if offset == 1 {
+            if row < 1 {
+                let targetIdx = (row + 1) * 3 + col
+                if targetIdx < count {
+                    currentDieIndex = targetIdx
+                } else {
+                    for c in stride(from: col, through: 0, by: -1) {
+                        let idx = (row + 1) * 3 + c
+                        if idx < count {
+                            currentDieIndex = idx
+                            break
+                        }
+                    }
+                }
+            }
         }
     }
     
