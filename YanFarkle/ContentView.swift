@@ -225,6 +225,8 @@ class Game: ObservableObject {
             state = .ROLLING
             // Prepare rolling dice count immediately to avoid a visual jump in die count
             rollingDice = (0..<num).map { _ in Int.random(in: 1...100) } // interim values
+            // Set remainingDice count immediately so syncState broadcasts the correct count
+            remainingDice = (0..<num).map { _ in 0 }
         }
         syncState()
         
@@ -345,7 +347,10 @@ class Game: ObservableObject {
         guard state == .BUST else { return }
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
             currentPlayer = currentPlayer.next
-            resetTurn()
+            // Explicitly suppress layout animations for the reset-turn transition
+            withAnimation(nil) {
+                resetTurn()
+            }
         }
     }
     
@@ -542,7 +547,7 @@ struct DieView: View {
         )
         .frame(width: 70, height: 70)
         .scaleEffect(isSelected ? 1.1 : 1.0)
-        .rotationEffect(.degrees(isSelected ? 5 : (isRolling ? Double.random(in: -20...20) : rotation)))
+        .rotationEffect(.degrees(isRolling ? Double.random(in: -20...20) : (rotation + (isSelected ? 5 : 0))))
         .animation(isRolling ? .linear(duration: 0.1) : .interactiveSpring(response: 0.3, dampingFraction: 0.7), value: value)
     }
 }
@@ -1066,13 +1071,20 @@ struct ContentView: View {
                 .cornerRadius(20)
             } else {
                 VStack(spacing: 20) {
-                    if game.state == .BUST {
-                        Text("BUST!")
-                            .font(.system(size: 64, weight: .heavy, design: .rounded))
-                            .foregroundColor(.red)
-                            .shadow(radius: 5)
-                            .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
+                    // Fixed-height header container to prevent the dice grid from shifting
+                    VStack(spacing: 12) {
+                        if game.state == .BUST {
+                            Text("BUST!")
+                                .font(.system(size: 64, weight: .heavy, design: .rounded))
+                                .foregroundColor(.red)
+                                .shadow(radius: 5)
+                                .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
+                        } else {
+                            // Empty space filler to maintain layout stability
+                            Spacer().frame(height: 0)
+                        }
                     }
+                    .frame(height: 100) // Fixed height for message area
                     
                     LazyVGrid(columns: [
                         GridItem(.fixed(70), spacing: 20),
@@ -1080,34 +1092,40 @@ struct ContentView: View {
                         GridItem(.fixed(70), spacing: 20)
                     ], spacing: 20) {
                         let diceToShow = game.state == .ROLLING ? game.rollingDice : game.remainingDice
-                        ForEach(Array(diceToShow.enumerated()), id: \.offset) { index, die in
-                            DieView(
-                                value: die,
-                                isSelected: game.state == .ROLLING ? false : game.selectedDice.contains(index),
-                                isFocused: {
-                                    #if os(macOS)
-                                    return game.state != .ROLLING && game.isLocalTurn && game.currentDieIndex == index
-                                    #else
-                                    return false
-                                    #endif
-                                }(),
-                                isRolling: game.state == .ROLLING,
-                                rotation: game.state == .ROLLING ? 0 : (game.diceRotations[index] ?? 0)
-                            )
-                            .animation(nil, value: game.state == .ROLLING)
-                            .onTapGesture {
-                                guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
-                                
-                                withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
-                                    game.currentDieIndex = index
-                                    if game.isLocalAuthority {
-                                        game.toggleDieSelection(index: index)
-                                        game.syncState()
-                                    } else {
-                                        game.toggleDieSelection(index: index) // optimistic
-                                        networkManager.sendAction(.SELECT, value: index)
+                        ForEach(0..<6, id: \.self) { index in
+                            if index < diceToShow.count {
+                                let die = diceToShow[index]
+                                DieView(
+                                    value: die,
+                                    isSelected: game.state == .ROLLING ? false : game.selectedDice.contains(index),
+                                    isFocused: {
+                                        #if os(macOS)
+                                        return game.state != .ROLLING && game.isLocalTurn && game.currentDieIndex == index
+                                        #else
+                                        return false
+                                        #endif
+                                    }(),
+                                    isRolling: game.state == .ROLLING,
+                                    rotation: game.state == .ROLLING ? 0 : (game.diceRotations[index] ?? 0)
+                                )
+                                .animation(nil, value: game.state == .ROLLING)
+                                .onTapGesture {
+                                    guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
+                                    
+                                    withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
+                                        game.currentDieIndex = index
+                                        if game.isLocalAuthority {
+                                            game.toggleDieSelection(index: index)
+                                            game.syncState()
+                                        } else {
+                                            game.toggleDieSelection(index: index) // optimistic
+                                            networkManager.sendAction(.SELECT, value: index)
+                                        }
                                     }
                                 }
+                            } else {
+                                // Transparent placeholder for layout stability
+                                Color.clear.frame(width: 70, height: 70)
                             }
                         }
                     }
