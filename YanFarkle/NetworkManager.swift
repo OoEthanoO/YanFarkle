@@ -9,8 +9,6 @@ enum GameState: String, Codable {
 struct GameStatePacket: Codable, Equatable {
     var p1Score: Int
     var p2Score: Int
-    var p1Ready: Bool
-    var p2Ready: Bool
     var currentPlayer: Int
     var turnScore: Int
     var remainingDice: [Int]

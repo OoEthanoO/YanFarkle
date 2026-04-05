@@ -448,8 +448,6 @@ class Game: ObservableObject {
         return GameStatePacket(
             p1Score: Int(getScore(player: .p1)),
             p2Score: Int(getScore(player: .p2)),
-            p1Ready: p1Ready,
-            p2Ready: p2Ready,
             currentPlayer: currentPlayer.rawValue,
             turnScore: Int(turnScore),
             remainingDice: remainingDice,
@@ -464,8 +462,6 @@ class Game: ObservableObject {
         objectWillChange.send()
         setScore(player: .p1, score: UInt(packet.p1Score))
         setScore(player: .p2, score: UInt(packet.p2Score))
-        p1Ready = packet.p1Ready
-        p2Ready = packet.p2Ready
         currentPlayer = Player(rawValue: packet.currentPlayer) ?? .p1
         turnScore = UInt(packet.turnScore)
         remainingDice = packet.remainingDice
@@ -955,17 +951,18 @@ struct ContentView: View {
                                 .foregroundColor(.yellow)
                             
                             Button(action: {
-                                if game.isLocalAuthority {
-                                    withAnimation {
-                                        game.p1Ready = true
-                                        if game.p1Ready && game.p2Ready {
-                                            game.start()
-                                        }
+                                withAnimation {
+                                    if game.myPlayer == .p1 {
+                                        game.p1Ready.toggle()
+                                    } else {
+                                        game.p2Ready.toggle()
+                                    }
+                                    NetworkManager.shared.sendAction(.READY_UP, value: game.myPlayer.rawValue)
+                                    
+                                    if game.isLocalAuthority && game.p1Ready && game.p2Ready {
+                                        game.start()
                                         game.syncState()
                                     }
-                                } else {
-                                    game.p2Ready = true
-                                    NetworkManager.shared.sendAction(.READY_UP, value: game.myPlayer.rawValue)
                                 }
                             }) {
                                 Text(!game.isLocalAuthority ? "Ready to Play Again" : "Play Again")
@@ -1367,6 +1364,20 @@ struct ContentView: View {
         }
         
         NetworkManager.shared.onActionReceived = { action, value in
+            if action == .READY_UP {
+                withAnimation {
+                    let sender = Player(rawValue: value)
+                    if sender == .p1 { game.p1Ready.toggle() }
+                    else if sender == .p2 { game.p2Ready.toggle() }
+                    
+                    if game.isLocalAuthority && game.p1Ready && game.p2Ready {
+                        game.start()
+                        game.syncState()
+                    }
+                }
+                return
+            }
+            
             guard game.isLocalAuthority else { return }
             
             withAnimation {
@@ -1382,14 +1393,6 @@ struct ContentView: View {
                     _ = game.scoreAndEndTurn()
                 case .BUST:
                     game.nextPlayerAfterBust()
-                case .READY_UP:
-                    let sender = Player(rawValue: value)
-                    if sender == .p1 { game.p1Ready = true }
-                    else if sender == .p2 { game.p2Ready = true }
-                    
-                    if game.p1Ready && game.p2Ready {
-                        game.start()
-                    }
                 default:
                     break
                 }
