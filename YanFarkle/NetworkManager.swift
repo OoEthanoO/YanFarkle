@@ -2,25 +2,26 @@ import Foundation
 import Network
 import Combine
 
+enum GameState: String, Codable {
+    case ROLLING, BUST, TURN, END_TURN, GAME_OVER
+}
+
 struct GameStatePacket: Codable, Equatable {
-    var player1Score: Int
-    var player2Score: Int
+    var p1Score: Int
+    var p2Score: Int
+    var p1Ready: Bool
+    var p2Ready: Bool
     var currentPlayer: Int
     var turnScore: Int
     var remainingDice: [Int]
-    var selectedDice: [Int]
-    var currentDieIndex: Int
-    var isBust: Bool
-    var finished: Bool
+    var selectedDice: Set<Int>
+    var state: GameState
     var winner: Int
-    var winPoints: Int
-    var isRolling: Bool? = false
-    var p1Ready: Bool? = false
-    var p2Ready: Bool? = false
+    var goal: Int
 }
 
 enum GameAction: String, Codable {
-    case SELECT, MOVE_LEFT, MOVE_RIGHT, MOVE_TO, ROLL, SCORE, BUST_ACK, NEXT_TURN, MOVE_UP, MOVE_DOWN, CONTINUE, END_TURN, BUST, RESTART
+    case SELECT, MOVE_LEFT, MOVE_RIGHT, MOVE_TO, ROLL, SCORE, BUST_ACK, NEXT_TURN, MOVE_UP, MOVE_DOWN, CONTINUE, END_TURN, BUST, READY_UP
 }
 
 struct StateUpdatePacket: Codable {
@@ -49,10 +50,10 @@ struct NetworkPacketDecodable: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
-        if type == "aqario.farkle.network.NetworkPacket.StateUpdate" {
+        if type.contains("StateUpdate") {
             let state = try container.decode(GameStatePacket.self, forKey: .state)
             packet = .stateUpdate(state)
-        } else if type == "aqario.farkle.network.NetworkPacket.Action" {
+        } else if type.contains("Action") {
             let action = try container.decode(GameAction.self, forKey: .gameAction)
             let value = try container.decodeIfPresent(Int.self, forKey: .value) ?? 0
             packet = .action(action, value)
@@ -202,16 +203,21 @@ class NetworkManager: ObservableObject {
         do {
             let packet = try JSONDecoder().decode(NetworkPacketDecodable.self, from: data)
             DispatchQueue.main.async {
-                if case .stateUpdate(let state) = packet.packet {
-                    self.onStateReceived?(state)
-                } else if case .action(let action, let value) = packet.packet {
-                    self.onActionReceived?(action, value)
+                if let p = packet.packet {
+                    switch p {
+                    case .stateUpdate(let state):
+                        print("[NET] Received StateUpdate. State: \(state.state), currentPlayer: \(state.currentPlayer)")
+                        self.onStateReceived?(state)
+                    case .action(let action, let value):
+                        print("[NET] Received Action: \(action), Value: \(value)")
+                        self.onActionReceived?(action, value)
+                    }
                 }
             }
         } catch {
-            print("Decoding error: \(error)")
+            print("[NET] Decoding error: \(error)")
             if let str = String(data: data, encoding: .utf8) {
-                print("Raw json: \(str)")
+                print("[NET] Raw json: \(str)")
             }
         }
     }

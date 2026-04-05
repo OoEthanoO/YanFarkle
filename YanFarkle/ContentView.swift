@@ -169,23 +169,33 @@ class Game: ObservableObject {
     @Published private var playerScores: [Player: UInt] = [.p1: 0, .p2: 0]
     
     @Published var currentPlayer: Player = .p1
-    @Published var finished: Bool = false
+    @Published var state: GameState = .ROLLING {
+        didSet {
+            if state == .ROLLING {
+                startRollingAnimation()
+            } else {
+                stopRollingAnimation()
+            }
+        }
+    }
     @Published var winner: Player? = nil
     
     @Published var turnScore: UInt = 0
     @Published var remainingDice: [Int] = []
     @Published var selectedDice: Set<Int> = [] // indices
-    @Published var isBust: Bool = false
     @Published var currentDieIndex = 0
     
     @Published var isNetworkGame = false
     @Published var myPlayer: Player = .p1
-    @Published var isRolling = false
     @Published var p1Ready = false
     @Published var p2Ready = false
     
     @Published var localP1Name: String = "Player 1"
     @Published var localP2Name: String = "Player 2"
+    
+    @Published var rollingDice: [Int] = []
+    @Published var diceRotations: [Int: Double] = [:] // Map index to rotation
+    private var rollingTimer: Timer?
     
     func getScore(player: Player) -> UInt {
         return playerScores[player] ?? 0
@@ -197,7 +207,6 @@ class Game: ObservableObject {
     
     func start() {
         playerScores = [.p1: 0, .p2: 0]
-        finished = false
         winner = nil
         currentPlayer = Bool.random() ? .p1 : .p2
         print("[GAME] Random starting player: \(currentPlayer == .p1 ? "P1 (Host)" : "P2 (Client)")")
@@ -208,16 +217,41 @@ class Game: ObservableObject {
     
     func resetTurn() {
         turnScore = 0
-        isBust = false
         rollNewDice(num: 6)
     }
     
     private func rollNewDice(num: Int) {
-        isBust = false
-        remainingDice = rollDice(numDice: num)
-        selectedDice.removeAll()
-        currentDieIndex = 0
-        checkBust()
+        withAnimation(nil) {
+            state = .ROLLING
+            // Prepare rolling dice count immediately to avoid a visual jump in die count
+            rollingDice = (0..<num).map { _ in Int.random(in: 1...100) } // interim values
+        }
+        syncState()
+        
+        if isLocalAuthority {
+            // Local game or host: wait 1.5s before showing results to match Kotlin behavior
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                guard let self = self, self.state == .ROLLING else { return }
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                    self.remainingDice = self.rollDice(numDice: num)
+                    // Generate new random rotations for the new roll
+                    var newRotations: [Int: Double] = [:]
+                    for i in 0..<self.remainingDice.count {
+                        newRotations[i] = Double.random(in: -15...15)
+                    }
+                    self.diceRotations = newRotations
+                    self.selectedDice.removeAll()
+                    self.currentDieIndex = 0
+                    self.checkBust()
+                    self.syncState()
+                }
+            }
+        } else {
+            // Client: clear old dice while waiting for host's authoritative update
+            remainingDice = []
+            selectedDice.removeAll()
+            currentDieIndex = 0
+        }
     }
     
     func rollDice(numDice: Int) -> [Int] {
@@ -225,7 +259,10 @@ class Game: ObservableObject {
     }
     
     func calculateSelectedScore() -> UInt {
-        let dice = selectedDice.map { remainingDice[$0] }
+        let dice = selectedDice.compactMap { idx -> Int? in
+            guard idx >= 0 && idx < remainingDice.count else { return nil }
+            return remainingDice[idx]
+        }
         return GameRules.calculateScore(selectedDice: dice)
     }
     
@@ -235,14 +272,24 @@ class Game: ObservableObject {
         if score == 0 { return false }
         
         turnScore += score
+        
+        // Safety: ensure indices are within bounds
+        let validSelected = selectedDice.filter { $0 >= 0 && $0 < remainingDice.count }
         var newRemaining: [Int] = []
         for (idx, die) in remainingDice.enumerated() {
-            if !selectedDice.contains(idx) {
+            if !validSelected.contains(idx) {
                 newRemaining.append(die)
             }
         }
         remainingDice = newRemaining
+        // Re-randomize rotations for the remaining dice to make it look like they were moved/re-settled
+        var updatedRotations: [Int: Double] = [:]
+        for i in 0..<remainingDice.count {
+            updatedRotations[i] = Double.random(in: -15...15)
+        }
+        diceRotations = updatedRotations
         selectedDice.removeAll()
+        currentDieIndex = 0
         
         if remainingDice.isEmpty {
             rollNewDice(num: 6)
@@ -262,11 +309,13 @@ class Game: ObservableObject {
         setScore(player: currentPlayer, score: newScore)
         
         if newScore >= winPoints {
-            finished = true
+            state = .GAME_OVER
             winner = currentPlayer
+        } else {
+            state = .END_TURN
         }
         
-        if !finished {
+        if state == .END_TURN {
             currentPlayer = currentPlayer.next
             resetTurn()
         }
@@ -275,13 +324,29 @@ class Game: ObservableObject {
     
     func checkBust() {
         if GameRules.getScoringIndices(dice: remainingDice).isEmpty {
-            isBust = true
+            state = .BUST
+            syncState()
+            
+            // Automatic transition for local/host players
+            if isLocalAuthority {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    guard let self = self, self.state == .BUST else { return }
+                    self.nextPlayerAfterBust()
+                    self.syncState()
+                }
+            }
+        } else {
+            state = .TURN
+            syncState()
         }
     }
     
     func nextPlayerAfterBust() {
-        currentPlayer = currentPlayer.next
-        resetTurn()
+        guard state == .BUST else { return }
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            currentPlayer = currentPlayer.next
+            resetTurn()
+        }
     }
     
     func toggleDieSelection(index: Int) {
@@ -323,41 +388,71 @@ class Game: ObservableObject {
     // Networking
     func toPacket() -> GameStatePacket {
         return GameStatePacket(
-            player1Score: Int(getScore(player: .p1)),
-            player2Score: Int(getScore(player: .p2)),
+            p1Score: Int(getScore(player: .p1)),
+            p2Score: Int(getScore(player: .p2)),
+            p1Ready: p1Ready,
+            p2Ready: p2Ready,
             currentPlayer: currentPlayer.rawValue,
             turnScore: Int(turnScore),
             remainingDice: remainingDice,
-            selectedDice: Array(selectedDice),
-            currentDieIndex: currentDieIndex,
-            isBust: isBust,
-            finished: finished,
+            selectedDice: selectedDice,
+            state: state,
             winner: winner?.rawValue ?? 0,
-            winPoints: Int(winPoints),
-            isRolling: isRolling,
-            p1Ready: p1Ready,
-            p2Ready: p2Ready
+            goal: Int(winPoints)
         )
     }
     
     func fromPacket(_ packet: GameStatePacket) {
         objectWillChange.send()
-        setScore(player: .p1, score: UInt(packet.player1Score))
-        setScore(player: .p2, score: UInt(packet.player2Score))
+        setScore(player: .p1, score: UInt(packet.p1Score))
+        setScore(player: .p2, score: UInt(packet.p2Score))
+        p1Ready = packet.p1Ready
+        p2Ready = packet.p2Ready
         currentPlayer = Player(rawValue: packet.currentPlayer) ?? .p1
         turnScore = UInt(packet.turnScore)
         remainingDice = packet.remainingDice
-        selectedDice = Set(packet.selectedDice)
-        currentDieIndex = packet.remainingDice.isEmpty ? 0 : min(packet.currentDieIndex, packet.remainingDice.count - 1)
-        isBust = packet.isBust
-        finished = packet.finished
-        winner = Player(rawValue: packet.winner)
-        winPoints = UInt(packet.winPoints)
-        isRolling = packet.isRolling ?? false
-        p1Ready = packet.p1Ready ?? false
-        p2Ready = packet.p2Ready ?? false
+        // Safety: filter incoming selectedDice indices
+        selectedDice = packet.selectedDice.filter { $0 >= 0 && $0 < packet.remainingDice.count }
         
-        print("[SYNC] Received selectedDice: \(selectedDice)")
+        let oldState = self.state
+        state = packet.state
+        
+        // Handle animation transition
+        if state == .ROLLING && oldState != .ROLLING {
+            startRollingAnimation()
+        } else if state != .ROLLING && oldState == .ROLLING {
+            stopRollingAnimation()
+        }
+        
+        winner = Player(rawValue: packet.winner)
+        winPoints = UInt(packet.goal)
+        
+        if !remainingDice.isEmpty {
+            currentDieIndex = min(currentDieIndex, remainingDice.count - 1)
+        } else {
+            currentDieIndex = 0
+        }
+        
+        print("[SYNC] Received selectedDice: \(selectedDice), state: \(state)")
+    }
+    
+    private func startRollingAnimation() {
+        rollingTimer?.invalidate()
+        
+        rollingTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                // Maintain the count currently set in rollingDice
+                let currentCount = self.rollingDice.count > 0 ? self.rollingDice.count : (self.remainingDice.isEmpty ? 6 : self.remainingDice.count)
+                self.rollingDice = (0..<currentCount).map { _ in Int.random(in: 1...6) }
+            }
+        }
+    }
+    
+    private func stopRollingAnimation() {
+        rollingTimer?.invalidate()
+        rollingTimer = nil
+        rollingDice = []
     }
     
     var isLocalTurn: Bool {
@@ -401,6 +496,8 @@ struct DieView: View {
     let value: Int
     let isSelected: Bool
     let isFocused: Bool
+    var isRolling: Bool = false
+    var rotation: Double = 0
     
     var body: some View {
         ZStack {
@@ -445,7 +542,8 @@ struct DieView: View {
         )
         .frame(width: 70, height: 70)
         .scaleEffect(isSelected ? 1.1 : 1.0)
-        .rotationEffect(.degrees(isSelected ? 5 : 0))
+        .rotationEffect(.degrees(isSelected ? 5 : (isRolling ? Double.random(in: -20...20) : rotation)))
+        .animation(isRolling ? .linear(duration: 0.1) : .interactiveSpring(response: 0.3, dampingFraction: 0.7), value: value)
     }
 }
 
@@ -488,7 +586,7 @@ struct ContentView: View {
             
             if !isStarted {
                 VStack(spacing: 20) {
-                    Text("Farkle")
+                    Text("YanFarkle")
                         .font(.system(size: 64, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .shadow(radius: 5)
@@ -731,14 +829,14 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                 }
-            } else if game.finished {
+            } else if game.state == .GAME_OVER {
                 VStack(spacing: 30) {
                     if game.winner == game.myPlayer && game.isNetworkGame {
                         Text("You Win!")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                     } else {
-                        Text("\(game.winner != nil ? game.playerName(for: game.winner!) : "Someone") Wins!")
+                        Text("\(game.winner != nil ? (game.winner == game.myPlayer ? "You Win!" : "\(game.playerName(for: game.winner!)) Wins!") : "Someone Wins!")")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                     }
@@ -771,7 +869,9 @@ struct ContentView: View {
                     
                     if game.isNetworkGame {
                         if NetworkManager.shared.isConnected {
-                            Text("Ready: \(game.p1Ready ? "[You]" : "You") | \(game.p2Ready ? "[Opponent]" : "Opponent")")
+                            let myReady = game.myPlayer == .p1 ? game.p1Ready : game.p2Ready
+                            let opReady = game.myPlayer == .p1 ? game.p2Ready : game.p1Ready
+                            Text("Ready: \(myReady ? "[You]" : "You") | \(opReady ? "[Opponent]" : "Opponent")")
                                 .font(.headline)
                                 .foregroundColor(.yellow)
                             
@@ -786,7 +886,7 @@ struct ContentView: View {
                                     }
                                 } else {
                                     game.p2Ready = true
-                                    NetworkManager.shared.sendAction(.RESTART, value: game.myPlayer.rawValue)
+                                    NetworkManager.shared.sendAction(.READY_UP, value: game.myPlayer.rawValue)
                                 }
                             }) {
                                 Text(!game.isLocalAuthority ? "Ready to Play Again" : "Play Again")
@@ -966,12 +1066,12 @@ struct ContentView: View {
                 .cornerRadius(20)
             } else {
                 VStack(spacing: 20) {
-                    if game.isBust {
+                    if game.state == .BUST {
                         Text("BUST!")
                             .font(.system(size: 64, weight: .heavy, design: .rounded))
                             .foregroundColor(.red)
                             .shadow(radius: 5)
-                            .transition(.scale)
+                            .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
                     }
                     
                     LazyVGrid(columns: [
@@ -979,16 +1079,24 @@ struct ContentView: View {
                         GridItem(.fixed(70), spacing: 20),
                         GridItem(.fixed(70), spacing: 20)
                     ], spacing: 20) {
-                        ForEach(Array(game.remainingDice.enumerated()), id: \.offset) { index, die in
-                            DieView(value: die, isSelected: game.selectedDice.contains(index), isFocused: {
-                                #if os(macOS)
-                                return game.isLocalTurn && game.currentDieIndex == index
-                                #else
-                                return false
-                                #endif
-                            }())
+                        let diceToShow = game.state == .ROLLING ? game.rollingDice : game.remainingDice
+                        ForEach(Array(diceToShow.enumerated()), id: \.offset) { index, die in
+                            DieView(
+                                value: die,
+                                isSelected: game.state == .ROLLING ? false : game.selectedDice.contains(index),
+                                isFocused: {
+                                    #if os(macOS)
+                                    return game.state != .ROLLING && game.isLocalTurn && game.currentDieIndex == index
+                                    #else
+                                    return false
+                                    #endif
+                                }(),
+                                isRolling: game.state == .ROLLING,
+                                rotation: game.state == .ROLLING ? 0 : (game.diceRotations[index] ?? 0)
+                            )
+                            .animation(nil, value: game.state == .ROLLING)
                             .onTapGesture {
-                                guard game.isLocalTurn && !game.isBust else { return }
+                                guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
                                 
                                 withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.currentDieIndex = index
@@ -1004,10 +1112,11 @@ struct ContentView: View {
                         }
                     }
                     .frame(width: 250)
+                    .transition(.opacity)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .overlay {
-                        if game.isBust {
+                        if game.state == .BUST {
                             Color.black.opacity(0.1)
                                 .cornerRadius(20)
                         }
@@ -1094,25 +1203,7 @@ struct ContentView: View {
             
             // Actions
             HStack(spacing: 20) {
-                if game.isBust {
-                    Button(action: {
-                        guard actionEnabled else { return }
-                        withAnimation {
-                            if game.isLocalAuthority {
-                                game.nextPlayerAfterBust()
-                                game.syncState()
-                            } else {
-                                NetworkManager.shared.sendAction(.BUST)
-                            }
-                        }
-                    }) {
-                        Text("Next Player")
-                            .actionButtonStyle(color: actionEnabled ? .red : .gray)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(!actionEnabled)
-                    .keyboardShortcut(.defaultAction) // Also allow Enter/Space for Next Player
-                } else {
+                if game.state != .BUST {
                     Button(action: {
                         guard actionEnabled else { return }
                         withAnimation {
@@ -1199,7 +1290,7 @@ struct ContentView: View {
                     _ = game.scoreAndEndTurn()
                 case .BUST:
                     game.nextPlayerAfterBust()
-                case .RESTART:
+                case .READY_UP:
                     let sender = Player(rawValue: value)
                     if sender == .p1 { game.p1Ready = true }
                     else if sender == .p2 { game.p2Ready = true }
@@ -1216,8 +1307,8 @@ struct ContentView: View {
         }
         
         NetworkManager.shared.onDisconnected = {
-            if !game.finished {
-                game.finished = true
+            if game.state != .GAME_OVER {
+                game.state = .GAME_OVER
                 game.winner = game.myPlayer
             } else {
                 withAnimation {
@@ -1252,7 +1343,7 @@ struct RulesView: View {
         VStack(spacing: 0) {
             // Custom Header
             HStack {
-                Text("Farkle Rules")
+                Text("YanFarkle Rules")
                     .font(.title2.bold())
                     .foregroundColor(.white)
                     .shadow(radius: 1)
@@ -1292,7 +1383,7 @@ struct RulesView: View {
                     VStack(alignment: .leading, spacing: 25) {
                         // Header Content
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("How to Play Farkle")
+                            Text("How to Play YanFarkle")
                                 .font(.system(size: 36, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
                                 .shadow(radius: 2)
@@ -1332,7 +1423,7 @@ struct RulesView: View {
                                 BulletPoint(title: "Selecting Dice", text: "You must select at least one scoring die after each roll to continue your turn.")
                                 BulletPoint(title: "Score & Roll (F)", text: "Lock in your current dice score and roll the remaining dice to increase your turn total.")
                                 BulletPoint(title: "Score & End (Q)", text: "Bank your total turn score into your overall score and end your turn.")
-                                BulletPoint(title: "Farkle (Bust!)", text: "If a roll results in NO scoring combinations, you 'Farkle' and lose ALL points earned during that turn.")
+                                BulletPoint(title: "YanFarkle (Bust!)", text: "If a roll results in NO scoring combinations, you 'YanFarkle' and lose ALL points earned during that turn.")
                                 BulletPoint(title: "Hot Dice", text: "If you manage to score with all six dice, you can roll all six again! Keep the momentum going until you decide to score or you Farkle.")
                             }
                         }
