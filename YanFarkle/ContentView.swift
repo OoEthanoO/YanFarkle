@@ -1441,8 +1441,8 @@ struct RulesView: View {
                                 BulletPoint(title: "Selecting Dice", text: "You must select at least one scoring die after each roll to continue your turn.")
                                 BulletPoint(title: "Score & Roll (F)", text: "Lock in your current dice score and roll the remaining dice to increase your turn total.")
                                 BulletPoint(title: "Score & End (Q)", text: "Bank your total turn score into your overall score and end your turn.")
-                                BulletPoint(title: "YanFarkle (Bust!)", text: "If a roll results in NO scoring combinations, you 'YanFarkle' and lose ALL points earned during that turn.")
-                                BulletPoint(title: "Hot Dice", text: "If you manage to score with all six dice, you can roll all six again! Keep the momentum going until you decide to score or you Farkle.")
+                                BulletPoint(title: "Farkle (Bust!)", text: "If a roll results in NO scoring combinations, you 'farkle' and lose ALL points earned during that turn.")
+                                BulletPoint(title: "Hot Dice", text: "If you manage to score with all six dice, you can roll all six again! Keep the momentum going until you decide to score or you farkle.")
                             }
                         }
                         
