@@ -757,7 +757,7 @@ struct ContentView: View {
                             Text("Connecting...")
                                 .font(.caption.bold())
                                 .foregroundColor(.yellow)
-                        } else if let error = NetworkManager.shared.connectionError {
+                        } else if let error = NetworkManager.shared.connectionError, ProcessInfo.processInfo.environment["DEBUG"] != nil {
                             Text(error)
                                 .font(.caption.bold())
                                 .foregroundColor(.red)
@@ -1056,7 +1056,7 @@ struct ContentView: View {
                         Text(NetworkManager.shared.isHosting ? "Hosting Game" : "Connected to Host")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
-                        if let err = NetworkManager.shared.connectionError {
+                        if let err = NetworkManager.shared.connectionError, ProcessInfo.processInfo.environment["DEBUG"] != nil {
                             Text("Error: \(err)")
                                 .font(.caption)
                                 .foregroundColor(.red)
