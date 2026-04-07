@@ -2,6 +2,14 @@ import SwiftUI
 import Combine
 import Foundation
 
+#if canImport(UIKit)
+import UIKit
+#endif
+
+#if canImport(AppKit)
+import AppKit
+#endif
+
 func getLocalIPAddress() -> String {
     var address = "127.0.0.1"
     var ifaddr: UnsafeMutablePointer<ifaddrs>?
@@ -1116,10 +1124,31 @@ struct ContentView: View {
                         .foregroundColor(.white)
                     
                     if NetworkManager.shared.isHosting {
-                        Text("Host IP: \(getLocalIPAddress())")
-                            .font(.headline)
-                            .foregroundColor(.yellow)
-                            .padding(.top, 10)
+                        let ip = getLocalIPAddress()
+                        HStack(spacing: 8) {
+                            Text("Host IP: \(ip)")
+                                .font(.headline)
+                                .foregroundColor(.yellow)
+                            
+                            Button(action: {
+                                #if os(macOS)
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(ip, forType: .string)
+                                #else
+                                UIPasteboard.general.string = ip
+                                #endif
+                            }) {
+                                Image(systemName: "doc.on.doc.fill")
+                                    .font(.body)
+                                    .foregroundColor(.white)
+                                    .padding(8)
+                                    .background(Color.white.opacity(0.3))
+                                    .clipShape(Circle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .help("Copy IP Address")
+                        }
+                        .padding(.top, 10)
                     }
                 }
                 .padding(40)

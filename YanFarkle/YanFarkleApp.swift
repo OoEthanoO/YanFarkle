@@ -20,10 +20,33 @@ struct YanFarkleApp: App {
     #if os(macOS)
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     #endif
+    
+    @Environment(\.scenePhase) private var scenePhase
+    
+    #if os(iOS)
+    @State private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    #endif
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onChange(of: scenePhase) { newPhase in
+                    #if os(iOS)
+                    if newPhase == .background {
+                        backgroundTask = UIApplication.shared.beginBackgroundTask {
+                            if backgroundTask != .invalid {
+                                UIApplication.shared.endBackgroundTask(backgroundTask)
+                                backgroundTask = .invalid
+                            }
+                        }
+                    } else if newPhase == .active {
+                        if backgroundTask != .invalid {
+                            UIApplication.shared.endBackgroundTask(backgroundTask)
+                            backgroundTask = .invalid
+                        }
+                    }
+                    #endif
+                }
         }
     }
 }
