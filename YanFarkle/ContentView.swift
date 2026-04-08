@@ -622,6 +622,7 @@ struct ContentView: View {
     @State private var isConfiguring = false
     @State private var hasReceivedInitialState = false
     @State private var showRules = false
+    @State private var isIPCopied = false
     
     @State private var p1NameInput = ""
     @State private var p2NameInput = ""
@@ -914,12 +915,18 @@ struct ContentView: View {
                 }
             } else if game.state == .GAME_OVER {
                 VStack(spacing: 30) {
-                    if game.winner == game.myPlayer && game.isNetworkGame {
-                        Text("You Win!")
-                            .font(.system(size: 48, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
+                    if let winner = game.winner {
+                        if game.isNetworkGame && winner == game.myPlayer {
+                            Text("You Win!")
+                                .font(.system(size: 48, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                        } else {
+                            Text("\(game.playerName(for: winner)) Wins!")
+                                .font(.system(size: 48, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                        }
                     } else {
-                        Text("\(game.winner != nil ? (game.winner == game.myPlayer ? "You Win!" : "\(game.playerName(for: game.winner!)) Wins!") : "Someone Wins!")")
+                        Text("Someone Wins!")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                     }
@@ -973,7 +980,7 @@ struct ContentView: View {
                                     }
                                 }
                             }) {
-                                Text(!game.isLocalAuthority ? "Ready to Play Again" : "Play Again")
+                                Text("Play Again")
                                     .font(.title2.bold())
                                     .padding(.horizontal, 40)
                                     .padding(.vertical, 15)
@@ -1137,10 +1144,19 @@ struct ContentView: View {
                                 #else
                                 UIPasteboard.general.string = ip
                                 #endif
+                                
+                                withAnimation {
+                                    isIPCopied = true
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    withAnimation {
+                                        isIPCopied = false
+                                    }
+                                }
                             }) {
-                                Image(systemName: "doc.on.doc.fill")
+                                Image(systemName: isIPCopied ? "checkmark" : "doc.on.doc.fill")
                                     .font(.body)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(isIPCopied ? .green : .white)
                                     .padding(8)
                                     .background(Color.white.opacity(0.3))
                                     .clipShape(Circle())
@@ -1186,46 +1202,47 @@ struct ContentView: View {
                     }
                     .frame(height: 100) // Fixed height for message area
                     
-                    LazyVGrid(columns: [
-                        GridItem(.fixed(70), spacing: 20),
-                        GridItem(.fixed(70), spacing: 20),
-                        GridItem(.fixed(70), spacing: 20)
-                    ], spacing: 20) {
+                    VStack(spacing: 20) {
                         let diceToShow = game.state == .ROLLING ? game.rollingDice : game.remainingDice
-                        ForEach(0..<6, id: \.self) { index in
-                            if index < diceToShow.count {
-                                let die = diceToShow[index]
-                                DieView(
-                                    value: die,
-                                    isSelected: game.state == .ROLLING ? false : game.selectedDice.contains(index),
-                                    isFocused: {
-                                        #if os(macOS)
-                                        return game.state != .ROLLING && game.isLocalTurn && game.currentDieIndex == index
-                                        #else
-                                        return false
-                                        #endif
-                                    }(),
-                                    isRolling: game.state == .ROLLING,
-                                    rotation: game.state == .ROLLING ? 0 : (game.diceRotations[index] ?? 0)
-                                )
-                                .animation(nil, value: game.state == .ROLLING)
-                                .onTapGesture {
-                                    guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
-                                    
-                                    withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
-                                        game.currentDieIndex = index
-                                        if game.isLocalAuthority {
-                                            game.toggleDieSelection(index: index)
-                                            game.syncState()
-                                        } else {
-                                            game.toggleDieSelection(index: index) // optimistic
-                                            networkManager.sendAction(.SELECT, value: index)
+                        ForEach(0..<2, id: \.self) { row in
+                            HStack(spacing: 20) {
+                                ForEach(0..<3, id: \.self) { col in
+                                    let index = row * 3 + col
+                                    if index < diceToShow.count {
+                                        let die = diceToShow[index]
+                                        DieView(
+                                            value: die,
+                                            isSelected: game.state == .ROLLING ? false : game.selectedDice.contains(index),
+                                            isFocused: {
+                                                #if os(macOS)
+                                                return game.state != .ROLLING && game.isLocalTurn && game.currentDieIndex == index
+                                                #else
+                                                return false
+                                                #endif
+                                            }(),
+                                            isRolling: game.state == .ROLLING,
+                                            rotation: game.state == .ROLLING ? 0 : (game.diceRotations[index] ?? 0)
+                                        )
+                                        .animation(nil, value: game.state == .ROLLING)
+                                        .onTapGesture {
+                                            guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
+                                            
+                                            withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
+                                                game.currentDieIndex = index
+                                                if game.isLocalAuthority {
+                                                    game.toggleDieSelection(index: index)
+                                                    game.syncState()
+                                                } else {
+                                                    game.toggleDieSelection(index: index) // optimistic
+                                                    networkManager.sendAction(.SELECT, value: index)
+                                                }
+                                            }
                                         }
+                                    } else {
+                                        // Transparent placeholder for layout stability
+                                        Color.clear.frame(width: 70, height: 70)
                                     }
                                 }
-                            } else {
-                                // Transparent placeholder for layout stability
-                                Color.clear.frame(width: 70, height: 70)
                             }
                         }
                     }
@@ -1243,61 +1260,67 @@ struct ContentView: View {
                     .background(
                         ZStack {
                             Button("") { 
+                                guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
                                 withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.moveFocusHorizontal(offset: -1)
                                     if game.isLocalAuthority {
                                         game.syncState()
-                                    } else if game.isLocalTurn {
+                                    } else {
                                         networkManager.sendAction(.MOVE_TO, value: game.currentDieIndex)
                                     }
                                 }
                             }.keyboardShortcut("a", modifiers: [])
                             Button("") { 
+                                guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
                                 withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.moveFocusHorizontal(offset: 1)
                                     if game.isLocalAuthority {
                                         game.syncState()
-                                    } else if game.isLocalTurn {
+                                    } else {
                                         networkManager.sendAction(.MOVE_TO, value: game.currentDieIndex)
                                     }
                                 }
                             }.keyboardShortcut("d", modifiers: [])
                             Button("") { 
+                                guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
                                 withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.moveFocusVertical(offset: -1)
                                     if game.isLocalAuthority {
                                         game.syncState()
-                                    } else if game.isLocalTurn {
+                                    } else {
                                         networkManager.sendAction(.MOVE_TO, value: game.currentDieIndex)
                                     }
                                 }
                             }.keyboardShortcut("w", modifiers: [])
                             Button("") { 
+                                guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
                                 withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.moveFocusVertical(offset: 1)
                                     if game.isLocalAuthority {
                                         game.syncState()
-                                    } else if game.isLocalTurn {
+                                    } else {
                                         networkManager.sendAction(.MOVE_TO, value: game.currentDieIndex)
                                     }
                                 }
                             }.keyboardShortcut("s", modifiers: [])
                             Button("") { 
+                                guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
                                 withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.toggleSelectedDie()
                                     if game.isLocalAuthority {
                                         game.syncState()
-                                    } else if game.isLocalTurn {
+                                    } else {
                                         networkManager.sendAction(.SELECT, value: game.currentDieIndex)
                                     }
                                 }
                             }.keyboardShortcut("e", modifiers: [])
                             Button("") { 
+                                guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
                                 withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                     game.toggleSelectedDie()
                                     if game.isLocalAuthority {
                                         game.syncState()
-                                    } else if game.isLocalTurn {
+                                    } else {
                                         networkManager.sendAction(.SELECT, value: game.currentDieIndex)
                                     }
                                 }
