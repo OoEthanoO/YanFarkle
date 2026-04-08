@@ -486,8 +486,14 @@ class Game: ObservableObject {
             stopRollingAnimation()
         }
         
+        let oldWinner = winner
         winner = Player(rawValue: packet.winner)
         winPoints = UInt(packet.goal)
+        
+        if oldWinner != nil && winner == nil {
+            p1Ready = false
+            p2Ready = false
+        }
         
         if !remainingDice.isEmpty {
             currentDieIndex = min(currentDieIndex, remainingDice.count - 1)
