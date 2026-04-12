@@ -33,16 +33,22 @@ struct ActionPacket: Codable {
     var value: Int = 0
 }
 
+struct ChatMessagePacket: Codable {
+    var type: String = "aqario.farkle.network.NetworkPacket.Chat"
+    var message: String
+}
+
 enum NetworkPacket {
     case stateUpdate(GameStatePacket)
     case action(GameAction, Int)
+    case chat(String)
 }
 
 struct NetworkPacketDecodable: Decodable {
     let packet: NetworkPacket?
     
     enum CodingKeys: String, CodingKey {
-        case type, state, gameAction, value
+        case type, state, gameAction, value, message
     }
     
     init(from decoder: Decoder) throws {
@@ -55,6 +61,9 @@ struct NetworkPacketDecodable: Decodable {
             let action = try container.decode(GameAction.self, forKey: .gameAction)
             let value = try container.decodeIfPresent(Int.self, forKey: .value) ?? 0
             packet = .action(action, value)
+        } else if type.contains("Chat") {
+            let message = try container.decode(String.self, forKey: .message)
+            packet = .chat(message)
         } else {
             packet = nil
         }
@@ -76,6 +85,7 @@ class NetworkManager: ObservableObject {
     
     var onStateReceived: ((GameStatePacket) -> Void)?
     var onActionReceived: ((GameAction, Int) -> Void)?
+    var onChatReceived: ((String) -> Void)?
     var onDisconnected: (() -> Void)?
     var onConnected: (() -> Void)?
     
@@ -209,6 +219,9 @@ class NetworkManager: ObservableObject {
                     case .action(let action, let value):
                         print("[NET] Received Action: \(action), Value: \(value)")
                         self.onActionReceived?(action, value)
+                    case .chat(let message):
+                        print("[NET] Received Chat: \(message)")
+                        self.onChatReceived?(message)
                     }
                 }
             }
@@ -229,6 +242,13 @@ class NetworkManager: ObservableObject {
     
     func sendAction(_ action: GameAction, value: Int = 0) {
         let packet = ActionPacket(gameAction: action, value: value)
+        if let data = try? JSONEncoder().encode(packet) {
+            sendData(data)
+        }
+    }
+    
+    func sendChat(_ message: String) {
+        let packet = ChatMessagePacket(message: message)
         if let data = try? JSONEncoder().encode(packet) {
             sendData(data)
         }

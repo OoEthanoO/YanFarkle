@@ -10,6 +10,10 @@ import UIKit
 import AppKit
 #endif
 
+#if canImport(GameController)
+import GameController
+#endif
+
 func getLocalIPAddress() -> String {
     var address = "127.0.0.1"
     var ifaddr: UnsafeMutablePointer<ifaddrs>?
@@ -172,6 +176,12 @@ struct GameRules {
     }
 }
 
+struct ChatMessage: Identifiable, Equatable {
+    let id = UUID()
+    let text: String
+    let isMe: Bool
+}
+
 class Game: ObservableObject {
     @Published var winPoints: UInt = 2000
     @Published private var playerScores: [Player: UInt] = [.p1: 0, .p2: 0]
@@ -201,6 +211,8 @@ class Game: ObservableObject {
     @Published var localP1Name: String = "Player 1"
     @Published var localP2Name: String = "Player 2"
     
+    @Published var chatMessages: [ChatMessage] = []
+    
     @Published var rollingDice: [Int] = []
     @Published var diceRotations: [Int: Double] = [:] // Map index to rotation
     private var rollingTimer: Timer?
@@ -220,6 +232,7 @@ class Game: ObservableObject {
         print("[GAME] Random starting player: \(currentPlayer == .p1 ? "P1 (Host)" : "P2 (Client)")")
         p1Ready = false
         p2Ready = false
+        chatMessages.removeAll()
         resetTurn()
     }
     
@@ -628,12 +641,27 @@ struct ContentView: View {
     @State private var isConfiguring = false
     @State private var hasReceivedInitialState = false
     @State private var showRules = false
+    @State private var showChat = false
+    @State private var showScanner = false
     @State private var isIPCopied = false
     
     @State private var p1NameInput = ""
     @State private var p2NameInput = ""
     
+    @State private var chatInput = ""
+    @FocusState private var isChatFocused: Bool
+    
     @FocusState private var focusedField: FocusField?
+    
+    @State private var isHardwareKeyboardAttached: Bool = {
+        #if os(macOS)
+        return true
+        #elseif canImport(GameController)
+        return GCKeyboard.coalesced != nil
+        #else
+        return false
+        #endif
+    }()
     
     var isWaiting: Bool {
         game.isNetworkGame && !networkManager.isConnected
@@ -641,6 +669,14 @@ struct ContentView: View {
     
     var actionEnabled: Bool {
         game.isLocalTurn && !isWaiting && hasReceivedInitialState
+    }
+    
+    var isIPhone: Bool {
+        #if canImport(UIKit)
+        return UIDevice.current.userInterfaceIdiom == .phone
+        #else
+        return false
+        #endif
     }
     
     var appVersionString: String {
@@ -729,7 +765,21 @@ struct ContentView: View {
                                 .cornerRadius(8)
                                 .focused($focusedField, equals: .hostIP)
                                 .frame(width: 150)
-                            
+
+                            if isIPhone {
+                                Button(action: {
+                                    showScanner = true
+                                }) {
+                                    Image(systemName: "qrcode.viewfinder")
+                                        .font(.title2)
+                                        .foregroundColor(.white)
+                                        .padding(10)
+                                        .background(Color.blue.opacity(0.8))
+                                        .cornerRadius(8)
+                                }
+                                .buttonStyle(.plain)
+                            }
+
                             Button(action: {
                                 focusedField = nil
                                 game.start()
@@ -1040,11 +1090,54 @@ struct ContentView: View {
         .sheet(isPresented: $showRules) {
             RulesView()
         }
+        .sheet(isPresented: $showScanner) {
+            #if canImport(UIKit)
+            VStack {
+                HStack {
+                    Text("Scan Host QR Code")
+                        .font(.headline)
+                    Spacer()
+                    Button("Cancel") {
+                        showScanner = false
+                    }
+                }
+                .padding()
+                
+                QRScannerView { code in
+                    hostIP = code.trimmingCharacters(in: .whitespacesAndNewlines)
+                    showScanner = false
+                    focusedField = nil
+                    game.start()
+                    hasReceivedInitialState = false
+                    game.isNetworkGame = true
+                    game.myPlayer = .p2
+                    NetworkManager.shared.connect(host: hostIP)
+                    setupNetworkCallbacks()
+                    withAnimation {
+                        isStarted = true
+                    }
+                }
+                .ignoresSafeArea()
+            }
+            #else
+            Text("Scanning not supported")
+            #endif
+        }
+        #if !os(macOS) && canImport(GameController)
+        .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidConnect)) { _ in
+            isHardwareKeyboardAttached = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .GCKeyboardDidDisconnect)) { _ in
+            isHardwareKeyboardAttached = false
+        }
+        #endif
     }
     
     var gameView: some View {
-        VStack {
-            // Top Bar
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Top Bar
             HStack(alignment: .top) {
                 Button(action: {
                     NetworkManager.shared.stop()
@@ -1061,9 +1154,9 @@ struct ContentView: View {
                         .cornerRadius(10)
                 }
                 .buttonStyle(.plain)
-                
+
                 Spacer()
-                
+
                 if game.isNetworkGame {
                     VStack(alignment: .trailing) {
                         Text(NetworkManager.shared.isHosting ? "Hosting Game" : "Connected to Host")
@@ -1079,6 +1172,22 @@ struct ContentView: View {
                                 .foregroundColor(.yellow)
                         }
                     }
+                }
+
+                if game.isNetworkGame {
+                    Button(action: {
+                        showChat = true
+                    }) {
+                        Image(systemName: "message.fill")
+                            .font(.title2)
+                            .foregroundColor(.white.opacity(0.8))
+                            .padding(8)
+                            .background(Color.black.opacity(0.2))
+                            .clipShape(Circle())
+                            // Notification dot if there are unread messages could go here
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 15)
                 }
                 
                 Button(action: {
@@ -1096,53 +1205,58 @@ struct ContentView: View {
             }
             .padding(.horizontal)
             .padding(.top, 10)
-            
+
             // Score Board
             HStack {
                 scoreCard(for: game.myPlayer)
                 Spacer()
                 scoreCard(for: game.myPlayer.next)
             }
-            .padding()
-            
-            Spacer()
-            
+            .padding(.horizontal)
+            .padding(.top, 10)
+
+            Spacer(minLength: 10)
+
             // Turn Info
             if !isWaiting && hasReceivedInitialState {
-                VStack(spacing: 10) {
+                VStack(spacing: 5) {
                     Text(game.isNetworkGame ? (game.isLocalTurn ? "Your Turn" : "Opponent's Turn") : "\(game.playerName(for: game.currentPlayer))'s Turn")
                         .font(.title.bold())
                         .foregroundColor(.white)
-                    
+
                     Text("Goal: \(game.winPoints)")
-                        .font(.headline)
+                        .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
-                    
+
                     Text("Turn Score: \(game.turnScore)")
                         .font(.title2)
                         .foregroundColor(.yellow)
                 }
             }
-            
-            Spacer()
-            
+
+            Spacer(minLength: 10)
+
             // Dice Area
             if isWaiting {
-                VStack(spacing: 20) {
+                VStack(spacing: 15) {
                     ProgressView()
                         .scaleEffect(1.5)
                         .tint(.white)
                     Text("Waiting for opponent...")
                         .font(.title2.bold())
                         .foregroundColor(.white)
-                    
+
                     if NetworkManager.shared.isHosting {
                         let ip = getLocalIPAddress()
+                        QRCodeView(text: ip)
+                            .frame(width: 150, height: 150)
+                            .padding(.bottom, 10)
+                            
                         HStack(spacing: 8) {
                             Text("Host IP: \(ip)")
                                 .font(.headline)
                                 .foregroundColor(.yellow)
-                            
+
                             Button(action: {
                                 #if os(macOS)
                                 NSPasteboard.general.clearContents()
@@ -1150,7 +1264,7 @@ struct ContentView: View {
                                 #else
                                 UIPasteboard.general.string = ip
                                 #endif
-                                
+
                                 withAnimation {
                                     isIPCopied = true
                                 }
@@ -1173,11 +1287,11 @@ struct ContentView: View {
                         .padding(.top, 10)
                     }
                 }
-                .padding(40)
+                .padding(30)
                 .background(Color.black.opacity(0.4))
                 .cornerRadius(20)
             } else if game.isNetworkGame && !hasReceivedInitialState {
-                VStack(spacing: 20) {
+                VStack(spacing: 15) {
                     ProgressView()
                         .scaleEffect(1.5)
                         .tint(.white)
@@ -1185,33 +1299,33 @@ struct ContentView: View {
                         .font(.title2.bold())
                         .foregroundColor(.white)
                     Text("The host is configuring the game setup.")
-                        .font(.headline)
+                        .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                 }
-                .padding(40)
+                .padding(30)
                 .background(Color.black.opacity(0.4))
                 .cornerRadius(20)
             } else {
-                VStack(spacing: 20) {
+                VStack(spacing: 15) {
                     // Fixed-height header container to prevent the dice grid from shifting
-                    VStack(spacing: 12) {
+                    VStack(spacing: 8) {
                         if game.state == .BUST {
                             Text("BUST!")
-                                .font(.system(size: 64, weight: .heavy, design: .rounded))
+                                .font(.system(size: 56, weight: .heavy, design: .rounded))
                                 .foregroundColor(.red)
                                 .shadow(radius: 5)
                                 .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
                         } else {
                             // Empty space filler to maintain layout stability
-                            Spacer().frame(height: 0)
+                            Spacer(minLength: 0).frame(height: 0)
                         }
                     }
-                    .frame(height: 100) // Fixed height for message area
-                    
-                    VStack(spacing: 20) {
+                    .frame(height: 60) // Fixed height for message area
+
+                    VStack(spacing: 15) {
                         let diceToShow = game.state == .ROLLING ? game.rollingDice : game.remainingDice
                         ForEach(0..<2, id: \.self) { row in
-                            HStack(spacing: 20) {
+                            HStack(spacing: 15) {
                                 ForEach(0..<3, id: \.self) { col in
                                     let index = row * 3 + col
                                     if index < diceToShow.count {
@@ -1219,20 +1333,14 @@ struct ContentView: View {
                                         DieView(
                                             value: die,
                                             isSelected: game.state == .ROLLING ? false : game.selectedDice.contains(index),
-                                            isFocused: {
-                                                #if os(macOS)
-                                                return game.state != .ROLLING && game.isLocalTurn && game.currentDieIndex == index
-                                                #else
-                                                return false
-                                                #endif
-                                            }(),
+                                            isFocused: isHardwareKeyboardAttached && game.state != .ROLLING && game.isLocalTurn && game.currentDieIndex == index,
                                             isRolling: game.state == .ROLLING,
                                             rotation: game.state == .ROLLING ? 0 : (game.diceRotations[index] ?? 0)
                                         )
                                         .animation(nil, value: game.state == .ROLLING)
                                         .onTapGesture {
                                             guard game.state != .ROLLING && game.isLocalTurn && game.state != .BUST else { return }
-                                            
+
                                             withAnimation(.interactiveSpring(response: 0.15, dampingFraction: 0.8)) {
                                                 game.currentDieIndex = index
                                                 if game.isLocalAuthority {
@@ -1255,7 +1363,7 @@ struct ContentView: View {
                     .frame(width: 250)
                     .transition(.opacity)
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.horizontal)
                     .overlay {
                         if game.state == .BUST {
                             Color.black.opacity(0.1)
@@ -1336,20 +1444,20 @@ struct ContentView: View {
                     )
                 }
             }
-            
-            Spacer()
-            
+
+            Spacer(minLength: 10)
+
             // Selected Dice Score
             let potentialScore = game.calculateSelectedScore()
             if !isWaiting && hasReceivedInitialState {
                 Text("Selected Score: \(potentialScore)")
                     .font(.headline)
                     .foregroundColor(potentialScore > 0 ? .green : .white)
-                    .padding(.bottom, 10)
+                    .padding(.bottom, 5)
             }
-            
+
             // Actions
-            HStack(spacing: 20) {
+            HStack(spacing: 15) {
                 if game.state != .BUST {
                     Button(action: {
                         guard actionEnabled else { return }
@@ -1362,14 +1470,14 @@ struct ContentView: View {
                             }
                         }
                     }) {
-                        Text("Score & Roll")
+                        Text("Score & Roll\(isHardwareKeyboardAttached ? " (f)" : "")")
                             .actionButtonStyle(color: actionEnabled ? .blue : .gray)
                     }
                     .buttonStyle(.plain)
                     .disabled(potentialScore == 0 || !actionEnabled)
                     .opacity((potentialScore == 0 || !actionEnabled) ? 0.5 : 1)
                     .keyboardShortcut("f", modifiers: [])
-                    
+
                     Button(action: {
                         guard actionEnabled else { return }
                         withAnimation {
@@ -1381,7 +1489,7 @@ struct ContentView: View {
                             }
                         }
                     }) {
-                        Text("Score & End")
+                        Text("Score & End\(isHardwareKeyboardAttached ? " (q)" : "")")
                             .actionButtonStyle(color: actionEnabled ? .orange : .gray)
                     }
                     .buttonStyle(.plain)
@@ -1390,13 +1498,114 @@ struct ContentView: View {
                     .keyboardShortcut("q", modifiers: [])
                 }
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, 10)
+        }
+        .frame(minHeight: proxy.size.height, alignment: .top)
+        }
+        }
+        .sheet(isPresented: $showChat) {
+            chatModal
         }
     }
-    
-    @ViewBuilder
-    func scoreCard(for player: Player) -> some View {
-        let isHighlighted = game.currentPlayer == player && !isWaiting && hasReceivedInitialState
+                    @ViewBuilder
+                    var chatModal: some View {
+                        VStack(spacing: 0) {
+                            HStack {
+                                Text("Chat & Emotes")
+                                    .font(.title2.bold())
+                                Spacer()
+                                Button("Close") {
+                                    showChat = false
+                                }
+                                .font(.headline)
+                            }
+                            .padding()
+                            .background(Color.gray.opacity(0.15))
+                            
+                            ScrollViewReader { proxy in
+                                ScrollView {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        ForEach(game.chatMessages) { msg in
+                                            HStack {
+                                                if msg.isMe {
+                                                    Spacer()
+                                                    Text(msg.text)
+                                                        .padding(12)
+                                                        .background(Color.blue)
+                                                        .foregroundColor(.white)
+                                                        .cornerRadius(15)
+                                                } else {
+                                                    Text(msg.text)
+                                                        .padding(12)
+                                                        .background(Color.gray.opacity(0.2))
+                                                        .foregroundColor(.primary)
+                                                        .cornerRadius(15)
+                                                    Spacer()
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .padding()
+                                }
+                                .frame(maxHeight: .infinity)
+                                .onChange(of: game.chatMessages) { messages in
+                                    if let last = messages.last {
+                                        withAnimation {
+                                            proxy.scrollTo(last.id, anchor: .bottom)
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            VStack(spacing: 15) {
+                                // Emotes
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 15) {
+                                        ForEach(["😂", "😡", "🎲", "😭", "👍", "👎", "🔥", "🎉"], id: \.self) { emote in
+                                            Button(emote) {
+                                                sendChat(text: emote)
+                                            }
+                                            .font(.largeTitle)
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
+                                
+                                HStack {
+                                    TextField("Chat...", text: $chatInput)
+                                        .textFieldStyle(.roundedBorder)
+                                        .focused($isChatFocused)
+                                        .onSubmit {
+                                            sendChat()
+                                        }
+                                        .toolbar {
+                                            ToolbarItemGroup(placement: .keyboard) {
+                                                Spacer()
+                                                Button("Done") {
+                                                    isChatFocused = false
+                                                }
+                                            }
+                                        }
+                                    
+                                    Button("Send") {
+                                        sendChat()
+                                    }
+                                    .disabled(chatInput.isEmpty)
+                                    .buttonStyle(.borderedProminent)
+                                }
+                                .padding(.horizontal)
+                            }
+                            .padding(.vertical, 10)
+                            .background(Color.gray.opacity(0.15))
+                        }
+                        #if os(macOS)
+                        .frame(width: 400, height: 500)
+                        #endif
+                    }
+
+                    @ViewBuilder
+                    func scoreCard(for player: Player) -> some View {        let isHighlighted = game.currentPlayer == player && !isWaiting && hasReceivedInitialState
         VStack {
             Text(game.playerName(for: player))
                 .font(.headline)
@@ -1413,11 +1622,31 @@ struct ContentView: View {
         )
     }
     
+    func sendChat(text: String? = nil) {
+        let message = text ?? chatInput
+        guard !message.isEmpty else { return }
+        
+        let chatMsg = ChatMessage(text: message, isMe: true)
+        game.chatMessages.append(chatMsg)
+        NetworkManager.shared.sendChat(message)
+        
+        if text == nil {
+            chatInput = ""
+        }
+    }
+    
     func setupNetworkCallbacks() {
         NetworkManager.shared.onStateReceived = { state in
             hasReceivedInitialState = true
             withAnimation {
                 game.fromPacket(state)
+            }
+        }
+        
+        NetworkManager.shared.onChatReceived = { message in
+            withAnimation {
+                let chatMsg = ChatMessage(text: message, isMe: false)
+                game.chatMessages.append(chatMsg)
             }
         }
         
@@ -1642,3 +1871,111 @@ struct BulletPoint: View {
         }
     }
 }
+
+import CoreImage.CIFilterBuiltins
+
+struct QRCodeView: View {
+    let text: String
+    
+    var body: some View {
+        if let cgimg = generateQRCode(from: text) {
+            Image(cgimg, scale: 1.0, label: Text("QR Code"))
+                .interpolation(.none)
+                .resizable()
+                .scaledToFit()
+        } else {
+            Text("Failed to generate QR Code")
+        }
+    }
+    
+    func generateQRCode(from string: String) -> CGImage? {
+        let context = CIContext()
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = Data(string.utf8)
+        
+        if let outputImage = filter.outputImage {
+            return context.createCGImage(outputImage, from: outputImage.extent)
+        }
+        return nil
+    }
+}
+
+#if canImport(UIKit)
+import AVFoundation
+import UIKit
+
+struct QRScannerView: UIViewControllerRepresentable {
+    var didFindCode: (String) -> Void
+    
+    class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
+        var parent: QRScannerView
+        var hasFoundCode = false
+        
+        init(parent: QRScannerView) {
+            self.parent = parent
+        }
+        
+        func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+            if !hasFoundCode, let metadataObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject {
+                guard let stringValue = metadataObject.stringValue else { return }
+                hasFoundCode = true
+                parent.didFindCode(stringValue)
+            }
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+    
+    func makeUIViewController(context: Context) -> UIViewController {
+        let viewController = UIViewController()
+        let session = AVCaptureSession()
+        
+        guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else { return viewController }
+        let videoInput: AVCaptureDeviceInput
+        
+        do {
+            videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
+        } catch {
+            return viewController
+        }
+        
+        if (session.canAddInput(videoInput)) {
+            session.addInput(videoInput)
+        } else {
+            return viewController
+        }
+        
+        let metadataOutput = AVCaptureMetadataOutput()
+        
+        if (session.canAddOutput(metadataOutput)) {
+            session.addOutput(metadataOutput)
+            
+            metadataOutput.setMetadataObjectsDelegate(context.coordinator, queue: DispatchQueue.main)
+            metadataOutput.metadataObjectTypes = [.qr]
+        } else {
+            return viewController
+        }
+        
+        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        previewLayer.frame = UIScreen.main.bounds
+        previewLayer.videoGravity = .resizeAspectFill
+        viewController.view.layer.addSublayer(previewLayer)
+        
+        DispatchQueue.global(qos: .background).async {
+            session.startRunning()
+        }
+        
+        return viewController
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) { }
+    
+    static func dismantleUIViewController(_ uiViewController: UIViewController, coordinator: Coordinator) {
+        if let layer = uiViewController.view.layer.sublayers?.first(where: { $0 is AVCaptureVideoPreviewLayer }) as? AVCaptureVideoPreviewLayer {
+            layer.session?.stopRunning()
+        }
+    }
+}
+#endif
