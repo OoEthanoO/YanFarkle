@@ -28,9 +28,9 @@ struct YanFarkleApp: App {
     #endif
 
     var body: some Scene {
-        WindowGroup {
+        let windowGroup = WindowGroup {
             ContentView()
-                .onChange(of: scenePhase) { newPhase in
+                .onChangeWithBackwardCompatibility(of: scenePhase) { newPhase in
                     #if os(iOS)
                     if newPhase == .background {
                         backgroundTask = UIApplication.shared.beginBackgroundTask {
@@ -48,5 +48,11 @@ struct YanFarkleApp: App {
                     #endif
                 }
         }
+
+        #if os(macOS)
+        windowGroup.windowResizability(.contentSize)
+        #else
+        windowGroup
+        #endif
     }
 }

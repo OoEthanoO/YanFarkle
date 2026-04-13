@@ -1,6 +1,11 @@
 import Foundation
 import Network
 import Combine
+import GameKit
+
+enum NetworkMode {
+    case none, lan, gameCenter
+}
 
 enum GameState: String, Codable {
     case ROLLING, BUST, TURN, END_TURN, GAME_OVER
@@ -70,16 +75,21 @@ struct NetworkPacketDecodable: Decodable {
     }
 }
 
-class NetworkManager: ObservableObject {
+class NetworkManager: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerListener {
     static let shared = NetworkManager()
     
+    @Published var networkMode: NetworkMode = .none
+    @Published var isAuthenticated = false
     @Published var isHosting = false
     @Published var isConnected = false
     @Published var isConnecting = false
     @Published var connectionError: String? = nil
     
+    private var match: GKMatch?
+    
     private var listener: NWListener?
     private var connection: NWConnection?
+    
     private var timeoutWorkItem: DispatchWorkItem?
     private let queue = DispatchQueue(label: "NetworkQueue")
     
@@ -88,9 +98,11 @@ class NetworkManager: ObservableObject {
     var onChatReceived: ((String) -> Void)?
     var onDisconnected: (() -> Void)?
     var onConnected: (() -> Void)?
+    var onMatchmakingComplete: (() -> Void)?
     
     func host(port: UInt16 = 9999) {
         stop(notify: false)
+        networkMode = .lan
         isHosting = true
         isConnecting = true
         do {
@@ -128,6 +140,7 @@ class NetworkManager: ObservableObject {
     
     func connect(host: String, port: UInt16 = 9999) {
         stop(notify: false)
+        networkMode = .lan
         isConnecting = true
         connectionError = nil
         
@@ -255,13 +268,21 @@ class NetworkManager: ObservableObject {
     }
     
     private func sendData(_ data: Data) {
-        var messageData = data
-        messageData.append(Data("\n".utf8))
-        connection?.send(content: messageData, completion: .contentProcessed({ error in
-            if let error = error {
-                print("Send error: \(error)")
+        if networkMode == .gameCenter {
+            do {
+                try match?.sendData(toAllPlayers: data, with: .reliable)
+            } catch {
+                print("GameKit send error: \(error)")
             }
-        }))
+        } else {
+            var messageData = data
+            messageData.append(Data("\n".utf8))
+            connection?.send(content: messageData, completion: .contentProcessed({ error in
+                if let error = error {
+                    print("Send error: \(error)")
+                }
+            }))
+        }
     }
     
     func stop(notify: Bool = true) {
@@ -273,16 +294,80 @@ class NetworkManager: ObservableObject {
         connection?.cancel()
         connection = nil
         
+        match?.disconnect()
+        match = nil
+        
         let wasConnected = self.isConnected
         self.isConnected = false
         self.isConnecting = false
         self.isHosting = false
+        self.networkMode = .none
         self.buffer.removeAll()
         
         if wasConnected && notify {
             DispatchQueue.main.async {
                 self.onDisconnected?()
             }
+        }
+    }
+    
+    // MARK: - GameKit Integration
+    func authenticateGameCenter() {
+        GKLocalPlayer.local.authenticateHandler = { [weak self] vc, error in
+            DispatchQueue.main.async {
+                if GKLocalPlayer.local.isAuthenticated {
+                    self?.isAuthenticated = true
+                    GKLocalPlayer.local.register(self!)
+                } else {
+                    self?.isAuthenticated = false
+                    print("GameCenter Auth Error: \(error?.localizedDescription ?? "Unknown")")
+                }
+            }
+        }
+    }
+    
+    func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
+        parseMessage(data)
+    }
+    
+    func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState) {
+        DispatchQueue.main.async {
+            switch state {
+            case .connected:
+                // We use playerIDs to cleanly assign the "Authority/Host" player
+                let amIAuthority = GKLocalPlayer.local.teamPlayerID > player.teamPlayerID
+                self.isHosting = amIAuthority
+            case .disconnected:
+                self.connectionError = "Opponent disconnected."
+                self.stop()
+            default:
+                break
+            }
+        }
+    }
+}
+
+extension NetworkManager: GKMatchmakerViewControllerDelegate {
+    func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
+        onMatchmakingComplete?()
+        stop()
+    }
+    
+    func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
+        onMatchmakingComplete?()
+        connectionError = error.localizedDescription
+        stop()
+    }
+    
+    func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {
+        onMatchmakingComplete?()
+        self.match = match
+        match.delegate = self
+        
+        DispatchQueue.main.async {
+            self.networkMode = .gameCenter
+            self.isConnected = true
+            self.onConnected?()
         }
     }
 }

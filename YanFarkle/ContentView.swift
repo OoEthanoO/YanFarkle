@@ -1,13 +1,42 @@
 import SwiftUI
 import Combine
 import Foundation
+import GameKit
 
 #if canImport(UIKit)
 import UIKit
-#endif
 
-#if canImport(AppKit)
+struct MatchmakerView: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> GKMatchmakerViewController {
+        let request = GKMatchRequest()
+        request.minPlayers = 2
+        request.maxPlayers = 2
+        request.inviteMessage = "Let's play Farkle!"
+        
+        let vc = GKMatchmakerViewController(matchRequest: request) ?? GKMatchmakerViewController()
+        vc.matchmakerDelegate = NetworkManager.shared
+        return vc
+    }
+    
+    func updateUIViewController(_ uiViewController: GKMatchmakerViewController, context: Context) {}
+}
+#elseif canImport(AppKit)
 import AppKit
+
+struct MatchmakerView: NSViewControllerRepresentable {
+    func makeNSViewController(context: Context) -> GKMatchmakerViewController {
+        let request = GKMatchRequest()
+        request.minPlayers = 2
+        request.maxPlayers = 2
+        request.inviteMessage = "Let's play Farkle!"
+        
+        let vc = GKMatchmakerViewController(matchRequest: request) ?? GKMatchmakerViewController()
+        vc.matchmakerDelegate = NetworkManager.shared
+        return vc
+    }
+    
+    func updateNSViewController(_ nsViewController: GKMatchmakerViewController, context: Context) {}
+}
 #endif
 
 #if canImport(GameController)
@@ -185,6 +214,7 @@ struct ChatMessage: Identifiable, Equatable {
 class Game: ObservableObject {
     @Published var winPoints: UInt = 2000
     @Published private var playerScores: [Player: UInt] = [.p1: 0, .p2: 0]
+    @Published var isBotGame: Bool = false
     
     @Published var currentPlayer: Player = .p1
     @Published var state: GameState = .ROLLING {
@@ -193,6 +223,11 @@ class Game: ObservableObject {
                 startRollingAnimation()
             } else {
                 stopRollingAnimation()
+            }
+            if state == .TURN && isBotGame && currentPlayer == .p2 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                    self?.executeBotTurn()
+                }
             }
         }
     }
@@ -375,6 +410,38 @@ class Game: ObservableObject {
         }
     }
     
+    func executeBotTurn() {
+        guard state == .TURN, isBotGame, currentPlayer == .p2 else { return }
+        
+        let scoringIndices = GameRules.getScoringIndices(dice: remainingDice)
+        guard !scoringIndices.isEmpty else { return }
+        
+        withAnimation(.spring()) {
+            self.selectedDice = Set(scoringIndices)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self = self, self.state == .TURN, self.currentPlayer == .p2 else { return }
+            
+            let calculated = self.calculateSelectedScore()
+            let currentBank = self.getScore(player: .p2)
+            let remainingCount = self.remainingDice.count - self.selectedDice.count
+            
+            let totalPotential = calculated + self.turnScore
+            
+            if totalPotential + currentBank >= self.winPoints {
+                self.scoreAndEndTurn()
+            } else if remainingCount == 0 {
+                // Hot Dice: Always choose to roll again!
+                self.scoreAndContinue()
+            } else if totalPotential > 300 || remainingCount <= 2 {
+                self.scoreAndEndTurn()
+            } else {
+                self.scoreAndContinue()
+            }
+        }
+    }
+    
     func toggleDieSelection(index: Int) {
         objectWillChange.send()
         if selectedDice.contains(index) {
@@ -537,6 +604,7 @@ class Game: ObservableObject {
     }
     
     var isLocalTurn: Bool {
+        if isBotGame && currentPlayer == .p2 { return false }
         return !isNetworkGame || currentPlayer == myPlayer
     }
     
@@ -632,6 +700,25 @@ enum FocusField: Hashable {
     case hostIP, p1Name, p2Name
 }
 
+extension View {
+    @ViewBuilder
+    func onChangeWithBackwardCompatibility<T: Equatable>(of value: T, perform action: @escaping (T) -> Void) -> some View {
+        if #available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *) {
+            self.onChange(of: value) { _, newValue in
+                action(newValue)
+            }
+        } else {
+            self.onChange(of: value, perform: action)
+        }
+    }
+    
+    func hideKeyboard() {
+        #if canImport(UIKit)
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        #endif
+    }
+}
+
 struct ContentView: View {
     @StateObject private var game = Game()
     @ObservedObject private var networkManager = NetworkManager.shared
@@ -644,12 +731,24 @@ struct ContentView: View {
     @State private var showChat = false
     @State private var showScanner = false
     @State private var isIPCopied = false
+    @State private var showMatchmaker = false
     
     @State private var p1NameInput = ""
     @State private var p2NameInput = ""
     
     @State private var chatInput = ""
     @FocusState private var isChatFocused: Bool
+    
+    @State private var recentMessage: ChatMessage?
+    @State private var showEmoteDropdown = false
+    @State private var recentMessageTimer: Timer?
+    
+    @State private var myEmoteText: String?
+    @State private var myEmoteTimer: Timer?
+    @State private var opponentEmoteText: String?
+    @State private var opponentEmoteTimer: Timer?
+    
+    private let allEmotes = ["😂", "😡", "🎲", "😭", "👍", "👎", "🔥", "🎉"]
     
     @FocusState private var focusedField: FocusField?
     
@@ -671,9 +770,9 @@ struct ContentView: View {
         game.isLocalTurn && !isWaiting && hasReceivedInitialState
     }
     
-    var isIPhone: Bool {
+    var isMobileDevice: Bool {
         #if canImport(UIKit)
-        return UIDevice.current.userInterfaceIdiom == .phone
+        return UIDevice.current.userInterfaceIdiom == .phone || UIDevice.current.userInterfaceIdiom == .pad
         #else
         return false
         #endif
@@ -712,12 +811,37 @@ struct ContentView: View {
                         game.start()
                         hasReceivedInitialState = true
                         game.isNetworkGame = false
+                        game.isBotGame = true
                         withAnimation {
                             isStarted = true
                             isConfiguring = true
                         }
                     }) {
-                        Text("Start Local Game")
+                        Text("1 Player (Vs Bot)")
+                            .font(.title2.bold())
+                            .padding(.horizontal, 40)
+                            .padding(.vertical, 15)
+                            .frame(maxWidth: 300)
+                            .background(Color.orange)
+                            .foregroundColor(.white)
+                            .cornerRadius(25)
+                            .shadow(radius: 5)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button(action: {
+                        focusedField = nil
+                        game.start()
+                        hasReceivedInitialState = true
+                        game.isNetworkGame = false
+                        game.isBotGame = false
+                        withAnimation {
+                            isStarted = true
+                            isConfiguring = true
+                        }
+                    }) {
+                        Text("2 Players (Local)")
                             .font(.title2.bold())
                             .padding(.horizontal, 40)
                             .padding(.vertical, 15)
@@ -730,11 +854,37 @@ struct ContentView: View {
                     }
                     .buttonStyle(.plain)
                     
+                    if NetworkManager.shared.isAuthenticated {
+                        Button(action: {
+                            focusedField = nil
+                            game.start()
+                            hasReceivedInitialState = false
+                            game.isNetworkGame = true
+                            game.isBotGame = false
+                            game.myPlayer = .p1
+                            setupNetworkCallbacks()
+                            showMatchmaker = true
+                        }) {
+                            Text("Play Online (Game Center)")
+                                .font(.title2.bold())
+                                .padding(.horizontal, 40)
+                                .padding(.vertical, 15)
+                                .frame(maxWidth: 300)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(25)
+                                .shadow(radius: 5)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
                     Button(action: {
                         focusedField = nil
                         game.start()
                         hasReceivedInitialState = true
                         game.isNetworkGame = true
+                        game.isBotGame = false
                         game.myPlayer = .p1
                         NetworkManager.shared.host()
                         setupNetworkCallbacks()
@@ -742,7 +892,7 @@ struct ContentView: View {
                             isStarted = true
                         }
                     }) {
-                        Text("Host Online Game")
+                        Text("Host LAN Game")
                             .font(.title2.bold())
                             .padding(.horizontal, 40)
                             .padding(.vertical, 15)
@@ -766,7 +916,7 @@ struct ContentView: View {
                                 .focused($focusedField, equals: .hostIP)
                                 .frame(width: 150)
 
-                            if isIPhone {
+                            if isMobileDevice {
                                 Button(action: {
                                     showScanner = true
                                 }) {
@@ -785,6 +935,7 @@ struct ContentView: View {
                                 game.start()
                                 hasReceivedInitialState = false
                                 game.isNetworkGame = true
+                                game.isBotGame = false
                                 game.myPlayer = .p2
                                 NetworkManager.shared.connect(host: hostIP)
                                 setupNetworkCallbacks()
@@ -795,7 +946,7 @@ struct ContentView: View {
                                             .tint(.white)
                                             .frame(width: 40)
                                     } else {
-                                        Text("Join")
+                                        Text("Join LAN")
                                             .font(.title3.bold())
                                     }
                                 }
@@ -881,8 +1032,14 @@ struct ContentView: View {
                                 TextField("Player 2", text: $p2NameInput)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .focused($focusedField, equals: .p2Name)
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(game.isBotGame ? .gray : .primary)
                                     .frame(width: 200)
+                                    .disabled(game.isBotGame)
+                            }
+                        }
+                        .onAppear {
+                            if game.isBotGame {
+                                p2NameInput = "Bot"
                             }
                         }
                         .padding()
@@ -925,7 +1082,11 @@ struct ContentView: View {
                         game.winPoints = goalScore
                         if !game.isNetworkGame {
                             game.localP1Name = p1NameInput.isEmpty ? "Player 1" : p1NameInput
-                            game.localP2Name = p2NameInput.isEmpty ? "Player 2" : p2NameInput
+                            if game.isBotGame {
+                                game.localP2Name = "Bot"
+                            } else {
+                                game.localP2Name = p2NameInput.isEmpty ? "Player 2" : p2NameInput
+                            }
                         }
                         game.start()
                         withAnimation {
@@ -1131,12 +1292,54 @@ struct ContentView: View {
             isHardwareKeyboardAttached = false
         }
         #endif
+        .sheet(isPresented: $showMatchmaker) {
+            MatchmakerView()
+            #if os(macOS)
+                .frame(minWidth: 600, minHeight: 450)
+            #endif
+                .ignoresSafeArea()
+                .onAppear {
+                    NetworkManager.shared.onMatchmakingComplete = {
+                        showMatchmaker = false
+                    }
+                }
+        }
+        .onAppear {
+            NetworkManager.shared.authenticateGameCenter()
+        }
     }
     
     var gameView: some View {
-        GeometryReader { proxy in
-            ScrollView {
-                VStack(spacing: 0) {
+        Group {
+            gameContent
+                .padding(.bottom, 20)
+        }
+        .sheet(isPresented: $showChat) {
+            chatModal
+        }
+        .overlay(
+            VStack {
+                if let msg = recentMessage {
+                    Text("\(game.playerName(for: msg.isMe ? game.myPlayer : game.myPlayer.next)): \(msg.text)")
+                        .font(.headline)
+                        .padding(12)
+                        .background(Color.black.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .padding(.top, 40)
+                }
+                Spacer()
+            }
+            .animation(.easeInOut(duration: 0.3), value: recentMessage)
+            .allowsHitTesting(false)
+        )
+    }
+
+    @ViewBuilder
+    var gameContent: some View {
+        VStack(spacing: 0) {
                     // Top Bar
             HStack(alignment: .top) {
                 Button(action: {
@@ -1159,52 +1362,108 @@ struct ContentView: View {
 
                 if game.isNetworkGame {
                     VStack(alignment: .trailing) {
-                        Text(NetworkManager.shared.isHosting ? "Hosting Game" : "Connected to Host")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.7))
                         if let err = NetworkManager.shared.connectionError, ProcessInfo.processInfo.environment["DEBUG"] != nil {
                             Text("Error: \(err)")
                                 .font(.caption)
                                 .foregroundColor(.red)
-                        } else if !NetworkManager.shared.isConnected {
-                            Text("Waiting for opponent...")
-                                .font(.caption)
-                                .foregroundColor(.yellow)
                         }
                     }
                 }
 
-                if game.isNetworkGame {
+                HStack(spacing: 8) {
+                    if game.isNetworkGame {
+                        Button(action: {
+                            showChat = true
+                        }) {
+                            Image(systemName: "message.fill")
+                                .font(.title2)
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.white.opacity(0.8))
+                                .padding(8)
+                                .background(Color.black.opacity(0.2))
+                                .clipShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                showEmoteDropdown.toggle()
+                            }
+                        }) {
+                            Image(systemName: "face.smiling")
+                                .font(.title2)
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.white.opacity(0.8))
+                                .padding(8)
+                                .background(Color.black.opacity(0.2))
+                                .clipShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .overlay(alignment: .topTrailing) {
+                            if showEmoteDropdown {
+                                VStack(spacing: 12) {
+                                    HStack(spacing: 12) {
+                                        ForEach(allEmotes.prefix(4), id: \.self) { emote in
+                                            Button {
+                                                sendChat(text: emote, isEmote: true)
+                                                withAnimation { showEmoteDropdown = false }
+                                            } label: {
+                                                Text(emote)
+                                                    .font(.title)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                    HStack(spacing: 12) {
+                                        ForEach(allEmotes.suffix(4), id: \.self) { emote in
+                                            Button {
+                                                sendChat(text: emote, isEmote: true)
+                                                withAnimation { showEmoteDropdown = false }
+                                            } label: {
+                                                Text(emote)
+                                                    .font(.title)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                }
+                                .padding(16)
+                                .frame(width: 180)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color(white: 0.15))
+                                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                        )
+                                )
+                                .foregroundColor(.white)
+                                .transition(.scale(scale: 0.9).combined(with: .opacity))
+                                .offset(x: -10, y: 50)
+                                .zIndex(100)
+                            }
+                        }
+                    }
+                    
                     Button(action: {
-                        showChat = true
+                        showRules = true
                     }) {
-                        Image(systemName: "message.fill")
+                        Image(systemName: "questionmark.circle.fill")
                             .font(.title2)
+                            .frame(width: 24, height: 24)
                             .foregroundColor(.white.opacity(0.8))
                             .padding(8)
                             .background(Color.black.opacity(0.2))
                             .clipShape(Circle())
-                            // Notification dot if there are unread messages could go here
                     }
                     .buttonStyle(.plain)
-                    .padding(.leading, 15)
                 }
-                
-                Button(action: {
-                    showRules = true
-                }) {
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.white.opacity(0.8))
-                        .padding(8)
-                        .background(Color.black.opacity(0.2))
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .padding(.leading, 15)
+                .padding(.leading, 10)
             }
             .padding(.horizontal)
             .padding(.top, 10)
+            .zIndex(100)
 
             // Score Board
             HStack {
@@ -1248,7 +1507,7 @@ struct ContentView: View {
 
                     if NetworkManager.shared.isHosting {
                         let ip = getLocalIPAddress()
-                        QRCodeView(text: ip)
+                        QRCodeView(text: "yanfarkle://\(ip)")
                             .frame(width: 150, height: 150)
                             .padding(.bottom, 10)
                             
@@ -1500,18 +1759,12 @@ struct ContentView: View {
             }
             .padding(.bottom, 10)
         }
-        .frame(minHeight: proxy.size.height, alignment: .top)
-        }
-        }
-        .sheet(isPresented: $showChat) {
-            chatModal
-        }
     }
                     @ViewBuilder
                     var chatModal: some View {
                         VStack(spacing: 0) {
                             HStack {
-                                Text("Chat & Emotes")
+                                Text("Chat")
                                     .font(.title2.bold())
                                 Spacer()
                                 Button("Close") {
@@ -1546,32 +1799,34 @@ struct ContentView: View {
                                         }
                                     }
                                     .padding()
+                                    
+                                    Color.clear.frame(height: 1).id("chat_bottom")
                                 }
                                 .frame(maxHeight: .infinity)
-                                .onChange(of: game.chatMessages) { messages in
-                                    if let last = messages.last {
+                                .onChangeWithBackwardCompatibility(of: game.chatMessages) { messages in
+                                    if !messages.isEmpty {
                                         withAnimation {
-                                            proxy.scrollTo(last.id, anchor: .bottom)
+                                            proxy.scrollTo("chat_bottom", anchor: .bottom)
                                         }
                                     }
                                 }
+                                #if canImport(UIKit)
+                                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                        withAnimation {
+                                            proxy.scrollTo("chat_bottom", anchor: .bottom)
+                                        }
+                                    }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        withAnimation {
+                                            proxy.scrollTo("chat_bottom", anchor: .bottom)
+                                        }
+                                    }
+                                }
+                                #endif
                             }
                             
                             VStack(spacing: 15) {
-                                // Emotes
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 15) {
-                                        ForEach(["😂", "😡", "🎲", "😭", "👍", "👎", "🔥", "🎉"], id: \.self) { emote in
-                                            Button(emote) {
-                                                sendChat(text: emote)
-                                            }
-                                            .font(.largeTitle)
-                                            .buttonStyle(.plain)
-                                        }
-                                    }
-                                    .padding(.horizontal)
-                                }
-                                
                                 HStack {
                                     TextField("Chat...", text: $chatInput)
                                         .textFieldStyle(.roundedBorder)
@@ -1579,6 +1834,7 @@ struct ContentView: View {
                                         .onSubmit {
                                             sendChat()
                                         }
+                                        #if os(macOS)
                                         .toolbar {
                                             ToolbarItemGroup(placement: .keyboard) {
                                                 Spacer()
@@ -1587,6 +1843,7 @@ struct ContentView: View {
                                                 }
                                             }
                                         }
+                                        #endif
                                     
                                     Button("Send") {
                                         sendChat()
@@ -1598,10 +1855,25 @@ struct ContentView: View {
                             }
                             .padding(.vertical, 10)
                             .background(Color.gray.opacity(0.15))
+                            .contentShape(Rectangle())
+                            .simultaneousGesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        if value.translation.height > 10 && isChatFocused {
+                                            hideKeyboard()
+                                            isChatFocused = false
+                                        }
+                                    }
+                            )
                         }
+                        .contentShape(Rectangle())
                         #if os(macOS)
                         .frame(width: 400, height: 500)
                         #endif
+                        .onTapGesture {
+                            hideKeyboard()
+                            isChatFocused = false
+                        }
                     }
 
                     @ViewBuilder
@@ -1620,15 +1892,47 @@ struct ContentView: View {
             RoundedRectangle(cornerRadius: 15)
                 .stroke(isHighlighted ? Color.yellow : Color.clear, lineWidth: 2)
         )
+        .overlay(alignment: .bottom) {
+            ZStack {
+                if player == game.myPlayer, let text = myEmoteText {
+                    Text(text)
+                        .font(.system(size: 60))
+                        .fixedSize()
+                        .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 5)
+                        .transition(.scale(scale: 0.5).combined(with: .opacity))
+                        .offset(y: 45)
+                } else if player == game.myPlayer.next, let text = opponentEmoteText {
+                    Text(text)
+                        .font(.system(size: 60))
+                        .fixedSize()
+                        .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 5)
+                        .transition(.scale(scale: 0.5).combined(with: .opacity))
+                        .offset(y: 45)
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.5), value: player == game.myPlayer ? myEmoteText : opponentEmoteText)
+            .allowsHitTesting(false)
+            .zIndex(50)
+        }
     }
     
-    func sendChat(text: String? = nil) {
+    func sendChat(text: String? = nil, isEmote: Bool = false) {
         let message = text ?? chatInput
         guard !message.isEmpty else { return }
         
         let chatMsg = ChatMessage(text: message, isMe: true)
         game.chatMessages.append(chatMsg)
         NetworkManager.shared.sendChat(message)
+        
+        if isEmote {
+            myEmoteText = message
+            myEmoteTimer?.invalidate()
+            myEmoteTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.5)) {
+                    myEmoteText = nil
+                }
+            }
+        }
         
         if text == nil {
             chatInput = ""
@@ -1644,9 +1948,26 @@ struct ContentView: View {
         }
         
         NetworkManager.shared.onChatReceived = { message in
+            let emotes = ["😂", "😡", "🎲", "😭", "👍", "👎", "🔥", "🎉"]
+            let isEmote = emotes.contains(message)
+            
             withAnimation {
                 let chatMsg = ChatMessage(text: message, isMe: false)
                 game.chatMessages.append(chatMsg)
+            }
+            
+            if isEmote {
+                opponentEmoteText = message
+                opponentEmoteTimer?.invalidate()
+                opponentEmoteTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5)) { opponentEmoteText = nil }
+                }
+            } else {
+                recentMessage = ChatMessage(text: message, isMe: false)
+                recentMessageTimer?.invalidate()
+                recentMessageTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
+                    withAnimation { recentMessage = nil }
+                }
             }
         }
         
@@ -1720,12 +2041,14 @@ struct ContentView: View {
 
 struct RulesView: View {
     @Environment(\.dismiss) var dismiss
+    @State private var currentPage = 0
+    let totalPages = 6
     
     var body: some View {
         VStack(spacing: 0) {
             // Custom Header
             HStack {
-                Text("YanFarkle Rules")
+                Text("How to Play")
                     .font(.title2.bold())
                     .foregroundColor(.white)
                     .shadow(radius: 1)
@@ -1761,114 +2084,346 @@ struct RulesView: View {
                 )
                 .ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 25) {
-                        // Header Content
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("How to Play YanFarkle")
-                                .font(.system(size: 36, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
-                                .shadow(radius: 2)
-                            
-                            Text("The goal is to score points by rolling dice. Be the first to reach the goal score to win!")
-                                .font(.headline)
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                        .padding(.top)
-                        
-                        Divider().background(Color.white.opacity(0.3))
-                        
-                        // Scoring Section
-                        VStack(alignment: .leading, spacing: 15) {
-                            SectionHeader(title: "Scoring Table", icon: "list.bullet.rectangle.fill")
-                            
-                            VStack(spacing: 8) {
-                                ScoringRow(label: "Single 1", points: "100 pts")
-                                ScoringRow(label: "Single 5", points: "50 pts")
-                                ScoringRow(label: "Three 1s", points: "1000 pts")
-                                ScoringRow(label: "Three of a Kind (2-6)", points: "100x Value")
-                                ScoringRow(label: "Four/Five/Six of a Kind", points: "Double for each extra")
-                                ScoringRow(label: "Straight (1-6)", points: "1500 pts")
-                                ScoringRow(label: "Small Straight (1-5)", points: "500 pts")
-                                ScoringRow(label: "Large Straight (2-6)", points: "750 pts")
-                            }
-                            .padding()
-                            .background(Color.black.opacity(0.3))
-                            .cornerRadius(15)
-                        }
-                        
-                        // Gameplay Section
-                        VStack(alignment: .leading, spacing: 15) {
-                            SectionHeader(title: "Gameplay Mechanics", icon: "gamecontroller.fill")
-                            
-                            VStack(alignment: .leading, spacing: 12) {
-                                BulletPoint(title: "Selecting Dice", text: "You must select at least one scoring die after each roll to continue your turn.")
-                                BulletPoint(title: "Score & Roll (F)", text: "Lock in your current dice score and roll the remaining dice to increase your turn total.")
-                                BulletPoint(title: "Score & End (Q)", text: "Bank your total turn score into your overall score and end your turn.")
-                                BulletPoint(title: "Farkle (Bust!)", text: "If a roll results in NO scoring combinations, you 'farkle' and lose ALL points earned during that turn.")
-                                BulletPoint(title: "Hot Dice", text: "If you manage to score with all six dice, you can roll all six again! Keep the momentum going until you decide to score or you farkle.")
-                            }
-                        }
-                        
-                        Spacer(minLength: 50)
+                Group {
+                    switch currentPage {
+                    case 0: RulePage1().transition(.opacity)
+                    case 1: RulePage2().transition(.opacity)
+                    case 2: RulePage3().transition(.opacity)
+                    case 3: RulePage4().transition(.opacity)
+                    case 4: RulePage6().transition(.opacity)
+                    case 5: RulePage5().transition(.opacity)
+                    default: EmptyView()
                     }
-                    .padding()
+                }
+                .animation(.easeInOut, value: currentPage)
+                
+                // Next/Prev Buttons Overlay
+                VStack {
+                    Spacer()
+                    HStack {
+                        if currentPage > 0 {
+                            Button(action: { withAnimation { currentPage -= 1 } }) {
+                                Image(systemName: "chevron.left.circle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.white.opacity(0.7))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Spacer()
+                        if currentPage < totalPages - 1 {
+                            Button(action: { withAnimation { currentPage += 1 } }) {
+                                Image(systemName: "chevron.right.circle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.white.opacity(0.7))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
                 }
             }
         }
         #if os(macOS)
-        .frame(minWidth: 500, minHeight: 600)
+        .frame(minWidth: 600, minHeight: 650)
         #endif
     }
 }
 
-struct SectionHeader: View {
-    let title: String
-    let icon: String
+struct RulePage1: View {
+    @State private var diceValues = [1, 5, 3, 4, 6, 2]
     
     var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundColor(.yellow)
-            Text(title)
-                .font(.title2.bold())
-                .foregroundColor(.yellow)
-                .shadow(radius: 1)
-        }
-    }
-}
-
-struct ScoringRow: View {
-    let label: String
-    let points: String
-    
-    var body: some View {
-        HStack {
-            Text(label)
+        VStack(spacing: 30) {
+            Text("Welcome to YanFarkle!")
+                .font(.system(size: 36, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
-            Spacer()
-            Text(points)
-                .fontWeight(.bold)
-                .foregroundColor(.yellow)
-        }
-    }
-}
-
-struct BulletPoint: View {
-    let title: String
-    let text: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("• \(title)")
+                .multilineTextAlignment(.center)
+            
+            Text("The goal is to reach the winning score by rolling dice and banking points.")
+                .font(.title3)
+                .foregroundColor(.white.opacity(0.9))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            HStack(spacing: 15) {
+                DieView(value: diceValues[0], isSelected: false, isFocused: false, isRolling: true)
+                DieView(value: diceValues[1], isSelected: false, isFocused: false, isRolling: true)
+                DieView(value: diceValues[2], isSelected: false, isFocused: false, isRolling: true)
+            }
+            HStack(spacing: 15) {
+                DieView(value: diceValues[3], isSelected: false, isFocused: false, isRolling: true)
+                DieView(value: diceValues[4], isSelected: false, isFocused: false, isRolling: true)
+                DieView(value: diceValues[5], isSelected: false, isFocused: false, isRolling: true)
+            }
+            
+            Text("You roll 6 dice. You must select at least one scoring die to continue your turn.")
                 .font(.headline)
                 .foregroundColor(.yellow)
-                .shadow(radius: 1)
-            Text(text)
-                .font(.subheadline)
-                .foregroundColor(.white.opacity(0.8))
-                .padding(.leading, 15)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Spacer()
         }
+        .padding(.top, 40)
+        .onAppear {
+            Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+                diceValues = (0..<6).map { _ in Int.random(in: 1...6) }
+            }
+        }
+    }
+}
+
+struct RulePage2: View {
+    var body: some View {
+        VStack(spacing: 30) {
+            Text("Basic Scoring")
+                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            Text("Single 1s and 5s are your bread and butter.")
+                .font(.title3)
+                .foregroundColor(.white.opacity(0.9))
+                .multilineTextAlignment(.center)
+            
+            VStack(spacing: 20) {
+                HStack(spacing: 20) {
+                    DieView(value: 1, isSelected: true, isFocused: false)
+                    Text("= 100 points")
+                        .font(.title2.bold())
+                        .foregroundColor(.yellow)
+                }
+                .padding()
+                .background(Color.black.opacity(0.3))
+                .cornerRadius(15)
+                
+                HStack(spacing: 20) {
+                    DieView(value: 5, isSelected: true, isFocused: false)
+                    Text("= 50 points")
+                        .font(.title2.bold())
+                        .foregroundColor(.yellow)
+                }
+                .padding()
+                .background(Color.black.opacity(0.3))
+                .cornerRadius(15)
+            }
+            
+            Text("Select these dice to lock in points and either score them or roll the remaining dice for more!")
+                .font(.headline)
+                .foregroundColor(.white.opacity(0.8))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Spacer()
+        }
+        .padding(.top, 40)
+    }
+}
+
+struct RulePage3: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Multiples")
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            Text("Three of a kind gives you big points!")
+                .font(.title3)
+                .foregroundColor(.white.opacity(0.9))
+            
+            VStack(spacing: 10) {
+                HStack {
+                    ForEach(0..<3, id: \.self) { _ in DieView(value: 1, isSelected: true, isFocused: false).scaleEffect(0.6).frame(width: 45, height: 45) }
+                    Spacer()
+                    Text("1000 pts")
+                        .font(.title3.bold())
+                        .foregroundColor(.yellow)
+                }
+                
+                HStack {
+                    ForEach(0..<3, id: \.self) { _ in DieView(value: 4, isSelected: true, isFocused: false).scaleEffect(0.6).frame(width: 45, height: 45) }
+                    Spacer()
+                    Text("400 pts")
+                        .font(.title3.bold())
+                        .foregroundColor(.yellow)
+                }
+                Text("For 2-6, it's 100 x Face Value")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            .padding(10)
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(15)
+            .padding(.horizontal, 20)
+            
+            Text("Four, Five, or Six of a kind doubles the score for each extra die!")
+                .font(.headline)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            HStack {
+                ForEach(0..<4, id: \.self) { _ in DieView(value: 4, isSelected: true, isFocused: false).scaleEffect(0.6).frame(width: 45, height: 45) }
+                Spacer()
+                Text("800 pts")
+                    .font(.title3.bold())
+                    .foregroundColor(.yellow)
+            }
+            .padding(10)
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(15)
+            .padding(.horizontal, 20)
+            
+            Spacer()
+        }
+        .padding(.top, 30)
+    }
+}
+
+struct RulePage4: View {
+    var body: some View {
+        VStack(spacing: 30) {
+            Text("Straights")
+                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            Text("Roll a sequence of numbers for massive points!")
+                .font(.title3)
+                .foregroundColor(.white.opacity(0.9))
+            
+            VStack(spacing: 20) {
+                VStack(alignment: .leading) {
+                    Text("Small Straight (1-5) = 500 pts").font(.headline).foregroundColor(.yellow)
+                    HStack(spacing: 5) {
+                        ForEach(1...5, id: \.self) { i in DieView(value: i, isSelected: true, isFocused: false).scaleEffect(0.8).frame(width: 50, height: 50) }
+                    }
+                }
+                
+                VStack(alignment: .leading) {
+                    Text("Large Straight (2-6) = 750 pts").font(.headline).foregroundColor(.yellow)
+                    HStack(spacing: 5) {
+                        ForEach(2...6, id: \.self) { i in DieView(value: i, isSelected: true, isFocused: false).scaleEffect(0.8).frame(width: 50, height: 50) }
+                    }
+                }
+                
+                VStack(alignment: .leading) {
+                    Text("Full Straight (1-6) = 1500 pts").font(.headline).foregroundColor(.yellow)
+                    HStack(spacing: 5) {
+                        ForEach(1...6, id: \.self) { i in DieView(value: i, isSelected: true, isFocused: false).scaleEffect(0.8).frame(width: 50, height: 50) }
+                    }
+                }
+            }
+            .padding()
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(15)
+            
+            Spacer()
+        }
+        .padding(.top, 40)
+    }
+}
+
+struct RulePage5: View {
+    var body: some View {
+        VStack(spacing: 25) {
+            Text("Farkle & Hot Dice")
+                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            VStack(spacing: 15) {
+                Text("FARKLE (Bust!)")
+                    .font(.title2.bold())
+                    .foregroundColor(.red)
+                
+                HStack {
+                    DieView(value: 2, isSelected: false, isFocused: false)
+                    DieView(value: 3, isSelected: false, isFocused: false)
+                    DieView(value: 4, isSelected: false, isFocused: false)
+                    DieView(value: 6, isSelected: false, isFocused: false)
+                }
+                
+                Text("If your roll has NO scoring dice, you Farkle! You lose all points accumulated during that turn.")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(15)
+            .padding(.horizontal)
+            
+            VStack(spacing: 15) {
+                Text("🔥 HOT DICE! 🔥")
+                    .font(.title2.bold())
+                    .foregroundColor(.orange)
+                
+                HStack {
+                    ForEach(1...6, id: \.self) { _ in
+                        DieView(value: 5, isSelected: true, isFocused: false).scaleEffect(0.7).frame(width: 45, height: 45)
+                    }
+                }
+                
+                Text("If you manage to select and score with ALL 6 dice, you get Hot Dice! You can roll all 6 again and keep building your turn score.")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(15)
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .padding(.top, 30)
+    }
+}
+
+struct RulePage6: View {
+    var body: some View {
+        VStack(spacing: 25) {
+            Text("Score & Roll vs Score & End")
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+            
+            Text("After selecting scoring dice, you have two choices:")
+                .font(.title3)
+                .foregroundColor(.white.opacity(0.9))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            VStack(spacing: 15) {
+                Text("Score & Roll")
+                    .actionButtonStyle(color: .blue)
+                
+                Text("Locks in your selected dice points to your turn score and rolls the remaining dice. It's risky but rewarding!")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(15)
+            .padding(.horizontal)
+            
+            VStack(spacing: 15) {
+                Text("Score & End")
+                    .actionButtonStyle(color: .orange)
+                
+                Text("Banks your total turn score into your overall score and safely ends your turn.")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(15)
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .padding(.top, 30)
     }
 }
 
@@ -1904,6 +2459,77 @@ struct QRCodeView: View {
 import AVFoundation
 import UIKit
 
+class ScannerViewController: UIViewController {
+    var captureSession: AVCaptureSession?
+    var previewLayer: AVCaptureVideoPreviewLayer?
+    var delegate: AVCaptureMetadataOutputObjectsDelegate?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let session = AVCaptureSession()
+        self.captureSession = session
+        
+        guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else { return }
+        let videoInput: AVCaptureDeviceInput
+        
+        do {
+            videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
+        } catch {
+            return
+        }
+        
+        if (session.canAddInput(videoInput)) {
+            session.addInput(videoInput)
+        } else {
+            return
+        }
+        
+        let metadataOutput = AVCaptureMetadataOutput()
+        
+        if (session.canAddOutput(metadataOutput)) {
+            session.addOutput(metadataOutput)
+            
+            if let delegate = delegate {
+                metadataOutput.setMetadataObjectsDelegate(delegate, queue: DispatchQueue.main)
+            }
+            metadataOutput.metadataObjectTypes = [.qr]
+        } else {
+            return
+        }
+        
+        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        previewLayer.frame = view.layer.bounds
+        previewLayer.videoGravity = .resizeAspectFill
+        view.layer.addSublayer(previewLayer)
+        self.previewLayer = previewLayer
+        
+        DispatchQueue.global(qos: .background).async {
+            session.startRunning()
+        }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        if let connection = previewLayer?.connection, connection.isVideoOrientationSupported {
+            if let windowScene = view.window?.windowScene {
+                switch windowScene.interfaceOrientation {
+                case .landscapeLeft:
+                    connection.videoOrientation = .landscapeLeft
+                case .landscapeRight:
+                    connection.videoOrientation = .landscapeRight
+                case .portraitUpsideDown:
+                    connection.videoOrientation = .portraitUpsideDown
+                default:
+                    connection.videoOrientation = .portrait
+                }
+            }
+        }
+        previewLayer?.frame = view.bounds
+    }
+}
+
 struct QRScannerView: UIViewControllerRepresentable {
     var didFindCode: (String) -> Void
     
@@ -1918,8 +2544,10 @@ struct QRScannerView: UIViewControllerRepresentable {
         func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
             if !hasFoundCode, let metadataObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject {
                 guard let stringValue = metadataObject.stringValue else { return }
+                let trimmed = stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard trimmed.hasPrefix("yanfarkle://") else { return }
                 hasFoundCode = true
-                parent.didFindCode(stringValue)
+                parent.didFindCode(String(trimmed.dropFirst("yanfarkle://".count)))
             }
         }
     }
@@ -1928,54 +2556,16 @@ struct QRScannerView: UIViewControllerRepresentable {
         Coordinator(parent: self)
     }
     
-    func makeUIViewController(context: Context) -> UIViewController {
-        let viewController = UIViewController()
-        let session = AVCaptureSession()
-        
-        guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else { return viewController }
-        let videoInput: AVCaptureDeviceInput
-        
-        do {
-            videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
-        } catch {
-            return viewController
-        }
-        
-        if (session.canAddInput(videoInput)) {
-            session.addInput(videoInput)
-        } else {
-            return viewController
-        }
-        
-        let metadataOutput = AVCaptureMetadataOutput()
-        
-        if (session.canAddOutput(metadataOutput)) {
-            session.addOutput(metadataOutput)
-            
-            metadataOutput.setMetadataObjectsDelegate(context.coordinator, queue: DispatchQueue.main)
-            metadataOutput.metadataObjectTypes = [.qr]
-        } else {
-            return viewController
-        }
-        
-        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.frame = UIScreen.main.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        viewController.view.layer.addSublayer(previewLayer)
-        
-        DispatchQueue.global(qos: .background).async {
-            session.startRunning()
-        }
-        
+    func makeUIViewController(context: Context) -> ScannerViewController {
+        let viewController = ScannerViewController()
+        viewController.delegate = context.coordinator
         return viewController
     }
     
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) { }
+    func updateUIViewController(_ uiViewController: ScannerViewController, context: Context) { }
     
-    static func dismantleUIViewController(_ uiViewController: UIViewController, coordinator: Coordinator) {
-        if let layer = uiViewController.view.layer.sublayers?.first(where: { $0 is AVCaptureVideoPreviewLayer }) as? AVCaptureVideoPreviewLayer {
-            layer.session?.stopRunning()
-        }
+    static func dismantleUIViewController(_ uiViewController: ScannerViewController, coordinator: Coordinator) {
+        uiViewController.captureSession?.stopRunning()
     }
 }
 #endif
