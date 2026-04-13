@@ -3,6 +3,12 @@ import Network
 import Combine
 import GameKit
 
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 enum NetworkMode {
     case none, lan, gameCenter
 }
@@ -315,7 +321,20 @@ class NetworkManager: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayer
     func authenticateGameCenter() {
         GKLocalPlayer.local.authenticateHandler = { [weak self] vc, error in
             DispatchQueue.main.async {
-                if GKLocalPlayer.local.isAuthenticated {
+                if let vc = vc {
+                    // Game Center needs to present a native auth UI (New Account, TOS, etc)
+                    #if os(macOS)
+                    if let window = NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first,
+                       let rootVC = window.contentViewController {
+                        rootVC.presentAsModalWindow(vc)
+                    }
+                    #else
+                    if let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).flatMap({ $0.windows }).first(where: { $0.isKeyWindow }),
+                       let rootVC = window.rootViewController {
+                        rootVC.present(vc, animated: true)
+                    }
+                    #endif
+                } else if GKLocalPlayer.local.isAuthenticated {
                     self?.isAuthenticated = true
                     GKLocalPlayer.local.register(self!)
                 } else {
@@ -323,6 +342,48 @@ class NetworkManager: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayer
                     print("GameCenter Auth Error: \(error?.localizedDescription ?? "Unknown")")
                 }
             }
+        }
+    }
+    
+    func presentMatchmaker(withInvite invite: GKInvite? = nil) {
+        let vc: GKMatchmakerViewController?
+        
+        if let invite = invite {
+            vc = GKMatchmakerViewController(invite: invite)
+        } else {
+            let request = GKMatchRequest()
+            request.minPlayers = 2
+            request.maxPlayers = 2
+            request.inviteMessage = "Let's play Farkle!"
+            vc = GKMatchmakerViewController(matchRequest: request)
+        }
+        
+        guard let matchmakerVC = vc else {
+            print("[ERROR] Failed to initialize GKMatchmakerViewController")
+            return
+        }
+        
+        matchmakerVC.matchmakerDelegate = self
+        
+        DispatchQueue.main.async {
+            #if os(macOS)
+            if let window = NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first,
+               let rootVC = window.contentViewController {
+                rootVC.presentAsModalWindow(matchmakerVC)
+            }
+            #else
+            if let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).flatMap({ $0.windows }).first(where: { $0.isKeyWindow }),
+               let rootVC = window.rootViewController {
+                rootVC.present(matchmakerVC, animated: true)
+            }
+            #endif
+        }
+    }
+    
+    // MARK: - GKLocalPlayerListener
+    func player(_ player: GKPlayer, didAccept invite: GKInvite) {
+        DispatchQueue.main.async {
+            self.presentMatchmaker(withInvite: invite)
         }
     }
     
@@ -349,20 +410,36 @@ class NetworkManager: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayer
 
 extension NetworkManager: GKMatchmakerViewControllerDelegate {
     func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
+        #if os(macOS)
+        viewController.dismiss(nil)
+        #else
+        viewController.dismiss(animated: true)
+        #endif
         onMatchmakingComplete?()
         stop()
     }
     
     func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
+        #if os(macOS)
+        viewController.dismiss(nil)
+        #else
+        viewController.dismiss(animated: true)
+        #endif
         onMatchmakingComplete?()
         connectionError = error.localizedDescription
         stop()
     }
     
     func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {
+        #if os(macOS)
+        viewController.dismiss(nil)
+        #else
+        viewController.dismiss(animated: true)
+        #endif
         onMatchmakingComplete?()
         self.match = match
         match.delegate = self
+
         
         DispatchQueue.main.async {
             self.networkMode = .gameCenter

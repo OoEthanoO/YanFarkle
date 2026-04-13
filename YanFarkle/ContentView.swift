@@ -6,37 +6,7 @@ import GameKit
 #if canImport(UIKit)
 import UIKit
 
-struct MatchmakerView: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> GKMatchmakerViewController {
-        let request = GKMatchRequest()
-        request.minPlayers = 2
-        request.maxPlayers = 2
-        request.inviteMessage = "Let's play Farkle!"
-        
-        let vc = GKMatchmakerViewController(matchRequest: request) ?? GKMatchmakerViewController()
-        vc.matchmakerDelegate = NetworkManager.shared
-        return vc
-    }
-    
-    func updateUIViewController(_ uiViewController: GKMatchmakerViewController, context: Context) {}
-}
-#elseif canImport(AppKit)
-import AppKit
-
-struct MatchmakerView: NSViewControllerRepresentable {
-    func makeNSViewController(context: Context) -> GKMatchmakerViewController {
-        let request = GKMatchRequest()
-        request.minPlayers = 2
-        request.maxPlayers = 2
-        request.inviteMessage = "Let's play Farkle!"
-        
-        let vc = GKMatchmakerViewController(matchRequest: request) ?? GKMatchmakerViewController()
-        vc.matchmakerDelegate = NetworkManager.shared
-        return vc
-    }
-    
-    func updateNSViewController(_ nsViewController: GKMatchmakerViewController, context: Context) {}
-}
+// MatchmakerView was removed here
 #endif
 
 #if canImport(GameController)
@@ -863,7 +833,7 @@ struct ContentView: View {
                             game.isBotGame = false
                             game.myPlayer = .p1
                             setupNetworkCallbacks()
-                            showMatchmaker = true
+                            NetworkManager.shared.presentMatchmaker()
                         }) {
                             Text("Play Online (Game Center)")
                                 .font(.title2.bold())
@@ -1292,18 +1262,7 @@ struct ContentView: View {
             isHardwareKeyboardAttached = false
         }
         #endif
-        .sheet(isPresented: $showMatchmaker) {
-            MatchmakerView()
-            #if os(macOS)
-                .frame(minWidth: 600, minHeight: 450)
-            #endif
-                .ignoresSafeArea()
-                .onAppear {
-                    NetworkManager.shared.onMatchmakingComplete = {
-                        showMatchmaker = false
-                    }
-                }
-        }
+
         .onAppear {
             NetworkManager.shared.authenticateGameCenter()
         }
